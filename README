@@ -1,0 +1,59 @@
+*****************************************************************
+
+      OpenIOC XML -> STIX XML Converter Script
+
+ Copyright (c) 2013 - The MITRE Corporation
+ All rights reserved. See LICENSE.txt for more details.
+
+*****************************************************************
+
+BY USING THE OPENIOC TO STIX SCRIPT, YOU SIGNIFY YOUR ACCEPTANCE OF THE TERMS AND 
+CONDITIONS OF USE.  IF YOU DO NOT AGREE TO THESE TERMS, DO NOT USE THIS SCRIPT.
+
+#################################################################
+#Generates STIX Indicator Output from an OpenIOC XML File       #
+#Compatible with STIX v1.0.1 and CybOX v2.0.1                   #
+#                                                               #
+#v0.1 - BETA                                                    #
+#10/17/2013                                                     #
+#################################################################
+# STIX - http://cybox.mitre.org                                 #
+# CybOX - http://cybox.mitre.org                                #
+# OpenIOC - http://www.openioc.org                              #
+#################################################################
+--------------------------------------------------------------------------------
+--Installation Notes------------------------------------------------------------
+
+Extract included files into your directory of choice. This script is dependent on the following libraries:
+* python-stix v1.0.1.x
+* python-cybox v2.0.1.x
+
+Install dependencies with pip:
+$ pip install stix 
+$ pip install cybox
+
+This script was created using Python 2.7, and so may not be compatible with 3.0.x.
+--------------------------------------------------------------------------------
+--Included Files----------------------------------------------------------------
+README: this file.
+openioc_to_stix.py: the OpenIOC XML to STIX XML Python script.
+openioc_to_cybox.py: the OpenIOC XML to CybOX XML Python converter script which
+                     this script wraps.
+ioc_observable.py: the helper methods for the script.
+openioc.py: the OpenIOC Python bindings created for the OpenIOC to CybOX script 
+            which the script imports.
+LICENSE.txt: the terms of use for this script.
+examples/openioc_sample.xml: a sample OpenIOC file.
+examples/openioc_stix_sample.xml: the sample OpenIOC file translated to STIX 
+                                  using this script.
+--------------------------------------------------------------------------------
+--Usage Notes-------------------------------------------------------------------
+
+There are two main command line parameters for this script:
+-i: the path to the input OpenIOC XML file
+-o: the path to the output STIX XML file
+
+To use the script, run the following command:
+python openioc_to_stix.py -i <OpenIOC XML file> -o <STIX XML file>
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
