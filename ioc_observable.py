@@ -111,13 +111,15 @@ def createObj(search_string, content_string, condition):
     elif split_search_string[0] == 'VolumeItem':
         defined_object = createVolumeObj(search_string, content_string, condition)
     
-    if defined_object != None: 
+    if defined_object: 
         if type(defined_object) is list:
             return defined_object
 
         if defined_object.hasContent_():
             defined_object.set_object_reference(None)
             return defined_object
+        else:
+            return None
     else:
         return None
 
