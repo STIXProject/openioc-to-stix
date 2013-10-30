@@ -65,24 +65,30 @@ def process_indicator_item(indicator_item, observables = None, indicatoritem_dic
     search_string = context.get_search()
     content_string = content.get_valueOf_().rstrip()
     condition = indicator_item.get_condition()
-
-    properties = ioc_observable.createObj(search_string, content_string, map_condition_keywords(condition))
     relatedobj = None
-    
+    observable = None
+
+    if observables:
+        id_string = ''
+        if indicator_item.get_id() is not None:
+            id_string = 'openioc:indicator-item-' + normalize_id(indicator_item.get_id())
+        else:
+            id_string = 'openioc:indicator-item-' + generate_observable_id()
+            indicatoritem_dict[get_indicatoritem_string(indicator_item)] = id_string
+        observable = cybox_binding.ObservableType(id=id_string)
+
+    try:
+        properties = ioc_observable.createObj(search_string, content_string, map_condition_keywords(condition))
+    except Exception as e:
+        if observable:
+            description_text = str("<![CDATA[{0}]]>").format("Error|Fatal. Encountered error when attempting IndicatorItem translation:" + str(e)) 
     #check if createObj returned only the expected object, or a list including a RelatedObject
     if type(properties) is list:
         relatedobj = properties[1] 
         properties = properties[0]
-        
-    if properties != None:
-        if observables != None:
-            id_string = ''
-            if indicator_item.get_id() is not None:
-                id_string = 'openioc:indicator-item-' + normalize_id(indicator_item.get_id())
-            else:
-                id_string = 'openioc:indicator-item-' + generate_observable_id()
-                indicatoritem_dict[get_indicatoritem_string(indicator_item)] = id_string
-            observable = cybox_binding.ObservableType(id=id_string)
+
+    if properties:
+        if observable:
             cyObject = cybox_binding.ObjectType(Properties=properties)
             observable.set_Object(cyObject)
             if relatedobj != None:
@@ -92,9 +98,12 @@ def process_indicator_item(indicator_item, observables = None, indicatoritem_dic
             return observable
         return True
     else:
-        if verbose_mode:
-            if indicator_item not in skipped_indicators:
-                    skipped_indicators.append(indicator_item)
+        if observable:
+            skipped_term = string_test(indicator_item.get_Context().get_search())
+            description_text = str("<![CDATA[{0}]]>").format("Error|Ignore. IndicatorItem not translated. Encountered IOC term "\
+                + skipped_term + ", which does not currently map to CybOX.") 
+            observable.set_Description(cybox_common_binding.StructuredTextType(valueOf_=description_text))       
+            return observable
         return False
     return
 
