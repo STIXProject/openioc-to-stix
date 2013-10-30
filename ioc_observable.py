@@ -590,7 +590,7 @@ def createFileObj(search_string, content_string, condition):
     elif search_string == "FileItem/FileName":
         fleobj.set_File_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
     elif search_string == "FileItem/FilePath":
-        fleobj.set_File_Path(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
+        fleobj.set_File_Path(fileobj.FilePathType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
     elif search_string == "FileItem/FilenameAccessed":
         return createWinFileObj(search_string, content_string, condition)
     elif search_string == "FileItem/FilenameChanged":
