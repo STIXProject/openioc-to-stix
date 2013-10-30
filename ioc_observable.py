@@ -111,7 +111,7 @@ def createObj(search_string, content_string, condition):
     elif split_search_string[0] == 'VolumeItem':
         defined_object = createVolumeObj(search_string, content_string, condition)
     
-    if defined_object: 
+    if defined_object != None: 
         if type(defined_object) is list:
             return defined_object
 
@@ -161,7 +161,7 @@ def createDiskObj(search_string, content_string, condition):
         partition_list.add_Partition(partition)
         dskobj.set_Partition_List(partition_list)
 
-    if valueset:
+    if valueset and dskobj.hasContent_():
         dskobj.set_xsi_type('DiskObj:DiskObjectType')
     elif not valueset:
         dskobj = None
@@ -194,7 +194,7 @@ def createDNSObj(search_string, content_string, condition):
     elif search_string == "DnsEntryItem/TimeToLive":
         dnsobj.set_TTL(process_numerical_value(common.IntegerObjectPropertyType(datatype=None), content_string, condition))
 
-    if valueset:
+    if valueset and dnsobj.hasContent_():
         dnsobj.set_xsi_type('DNSCacheObj:DNSCacheObjectType')
     elif not valueset:
         dnsobj = None
@@ -361,7 +361,7 @@ def createDriverObj(search_string, content_string, condition):
     elif search_string == "DriverItem/StringList/string":
         return createFileObj(search_string, content_string, condition)
     
-    if valueset:
+    if valueset and driverobj.hasContent_():
         driverobj.set_xsi_type('WinDriverObj:WindowsDriverObjectType')
     elif not valueset:
         driverobj = None
@@ -503,7 +503,7 @@ def createEmailObj(search_string, content_string, condition):
     elif search_string == "Email/X-filetypes":
         valueset = False
 
-    if valueset:
+    if valueset and emailobj.hasContent_():
         emailobj.set_xsi_type('EmailMessageObj:EmailMessageObjectType')
     elif not valueset:
         emailobj = None
@@ -561,7 +561,7 @@ def createWinEventLogObj(search_string, content_string, condition):
     elif search_string == "EventLogItem/writeTime":
         eventlogobj.set_Write_Time(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
 
-    if valueset:
+    if valueset and eventlogobj.hasContent_():
         eventlogobj.set_xsi_type('WinEventLogObj:WindowsEventLogObjectType')
     elif not valueset:
         eventlogobj = None
@@ -663,7 +663,7 @@ def createFileObj(search_string, content_string, condition):
     elif search_string == "FileItem/Username":
         fleobj.set_User_Owner(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
 
-    if valueset:
+    if valueset and fleobj.hasContent_():
         fleobj.set_xsi_type('FileObj:FileObjectType')
     elif not valueset:
         fleobj = None
@@ -728,7 +728,7 @@ def createHookObj(search_string, content_string, condition):
     elif search_string == "HookItem/HookingModule":
         hookobject.set_Hooking_Module(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
 
-    if valueset:
+    if valueset and hookobject.hasContent_():
         hookobject.set_xsi_type('WinKernelHookObj:WindowsKernelHookObjectType')
     elif not valueset:
         hookobject = None
@@ -755,7 +755,7 @@ def createLibraryObj(search_string, content_string, condition):
     elif search_string == "ModuleItem/ModuleSize":
         libobj.set_Size(common.UnsignedLongObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
 
-    if valueset:
+    if valueset and libobj.hasContent_():
         libobj.set_xsi_type('LibraryObj:LibraryObjectType')
     elif not valueset:
         libobj = None
@@ -856,7 +856,7 @@ def createNetConnectionObj(search_string, content_string, condition):
     elif search_string == "PortItem/CreationTime" or search_string == "ProcessItem/PortList/PortItem/CreationTime":
         netconn.set_Creation_Time(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
 
-    if valueset:
+    if valueset and netconn.hasContent_():
         netconn.set_xsi_type('NetworkConnectionObj:NetworkConnectionObjectType')
     elif not valueset:
         netconn = None
@@ -895,7 +895,7 @@ def createNetRouteObj(search_string, content_string, condition):
     elif search_string == "RouteEntryItem/RouteType":
         netrtobj.set_Type(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
         
-    if valueset:
+    if valueset and netrtobj.hasContent_():
         netrtobj.set_xsi_type('NetworkRouteEntryObj:NetworkRouteEntryObjectType')
     elif not valueset:
         netrtobj = None
@@ -931,7 +931,7 @@ def createPortObj(search_string, content_string, condition):
     elif search_string == "PortItem/state":
         valueset = False
 
-    if valueset:
+    if valueset and portobject.hasContent_():
         portobject.set_xsi_type('PortObj:PortObjectType')
     elif not valueset:
         portobject = None
@@ -980,7 +980,7 @@ def createPrefetchObj(search_string, content_string, condition):
     elif search_string == "PrefetchItem/TimesExecuted":
         prefetchobject.set_Times_Executed(common.LongObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
 
-    if valueset:
+    if valueset and prefetchobject.hasContent_():
         prefetchobject.set_xsi_type('PortObj:PortObjectType')
     elif not valueset:
         prefetchobject = None
@@ -1063,7 +1063,7 @@ def createProcessObj(search_string, content_string, condition):
     elif search_string == "ProcessItem/userTime":
         procobj.set_User_Time(common.DurationObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
 
-    if valueset:
+    if valueset and procobj.hasContent_():
         procobj.set_xsi_type('ProcessObj:ProcessObjectType')
     elif not valueset:
         procobj = None
@@ -1117,7 +1117,7 @@ def createRegObj(search_string, content_string, condition):
         values.add_Value(value)
         regobj.set_Values(values)
 
-    if valueset:
+    if valueset and regobj.hasContent_():
         regobj.set_xsi_type('WinRegistryKeyObj:WindowsRegistryKeyObjectType')
     elif not valueset:
         regobj = None
@@ -1203,7 +1203,7 @@ def createServiceObj(search_string, content_string, condition):
     elif search_string == "ServiceItem/type":
         serviceobj.set_Service_Type(common.StringObjectPropertyType(datatype='string', condition=condition, valueOf_=process_string_value(content_string)))
 
-    if valueset:
+    if valueset and serviceobj.hasContent_():
         serviceobj.set_xsi_type('WinServiceObj:WindowsServiceObjectType')
     elif not valueset:
         serviceobj = None
@@ -1348,7 +1348,7 @@ def createSystemObj(search_string, content_string, condition):
     elif content_string == 'SystemInfoItem/user':
         sysobj.set_Total_Physical_Memory(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
 
-    if valueset:
+    if valueset and sysobj.hasContent_():
         sysobj.set_xsi_type('SystemObj:SystemObjectType')
     elif not valueset:
         sysobj = None
@@ -1399,7 +1399,7 @@ def createSystemRestoreObj(search_string, content_string, condition):
     elif content_string == "SystemRestoreItem/OriginalShortFileName":
         restoreobject.Original_Short_File_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
 
-    if valueset:
+    if valueset and restoreobject.hasContent_():
         restoreobject.set_xsi_type('WinSystemRestoreObj:WindowsSystemRestoreObjectType')
     elif not valueset:
         restoreobject = None
@@ -1442,7 +1442,7 @@ def createUserObj(search_string, content_string, condition):
     elif search_string == "UserItem/userpasswordage":
         accountobj.set_User_Password_Age(common.DurationObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
 
-    if valueset:
+    if valueset and accountobj.hasContent_():
         accountobj.set_xsi_type('UserAccountObj:UserAccountObjectType')
     elif not valueset:
         accountobj = None
@@ -1490,7 +1490,7 @@ def createVolumeObj(search_string, content_string, condition):
     elif search_string == "VolumeItem/VolumeName":
         valueset = False
 
-    if valueset:
+    if valueset and volobj.hasContent_():
         volobj.set_xsi_type('VolumeObj:VolumeObjectType')
     elif not valueset:
         volobj = None
@@ -1522,7 +1522,7 @@ def createWinSystemObj(search_string, content_string, condition):
         stringobjattribute = common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string))
         winsysobj.set_Registered_Owner(stringobjattribute)
     
-    if valueset:
+    if valueset and winsysobj.hasContent_():
         winsysobj.set_xsi_type('WinSystemObj:WindowsSystemObjectType')
     elif not valueset:
         winsysobj = None
@@ -1782,7 +1782,7 @@ def createWinTaskObject(search_string, content_string, condition):
     elif search_string == "TaskItem/sha256sum":
         valueset = False
 
-    if valueset:
+    if valueset and taskobj.hasContent_():
         taskobj.set_xsi_type('WinTaskObj:WindowsTaskObjectType')
     elif not valueset:
         taskobj = None
@@ -1799,7 +1799,7 @@ def createWinVolumeObj(search_string, content_string, condition):
     if search_string == "VolumeItem/DriveLetter":
         winvolobj.set_Drive_Letter(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
 
-    if valueset:
+    if valueset and winvolobj.hasContent_():
         winvolobj.set_xsi_type('WinVolumeObj:WindowsVolumeObjectType')
     elif not valueset:
         winvolobj = None
@@ -1816,7 +1816,7 @@ def createUnixFileObj(search_string, content_string, condition):
     if search_string == "FileItem/INode":
         fileobj.set_INode(process_numerical_value(common.UnsignedLongObjectPropertyType(datatype=None), content_string, condition))
 
-    if valueset:
+    if valueset and fileobj.hasContent_():
         fileobj.set_xsi_type('UnixFileObj:UnixFileObjectType')
     elif not valueset:
         fileobj = None
@@ -1888,7 +1888,7 @@ def createWinFileObj(search_string, content_string, condition):
         stream_list.add_Stream(stream)
         fileobj.set_Stream_List(stream_list)
 
-    if valueset:
+    if valueset and fileobj.hasContent_():
         fileobj.set_xsi_type('WinFileObj:WindowsFileObjectType')
     elif not valueset:
         fileobj = None
@@ -2164,7 +2164,7 @@ def createWinExecObj(search_string, content_string, condition):
         reslist.add_Resource(verres)
         winexecobj.set_Resources(reslist)
 
-    if valueset:
+    if valueset and winexecobj.hasContent_():
         winexecobj.set_xsi_type('WinExecutableFileObj:WindowsExecutableFileObjectType')
     elif not valueset:
         winexecobj = None
@@ -2183,7 +2183,7 @@ def createWinUserObj(search_string, content_string, condition):
     elif search_string == "UserItem/SecurityType":
         accountobj.set_Security_Type(common.StringObjectPropertyType(datatype='string', condition=condition, valueOf_=process_string_value(content_string)))
 
-    if valueset:
+    if valueset and accountobj.hasContent_():
         accountobj.set_xsi_type('WinUserAccountObj:WindowsUserAccountObjectType')
     elif not valueset:
         accountobj = None
@@ -2204,7 +2204,7 @@ def createAccountObj(search_string, content_string, condition):
     elif search_string == "UserItem/lockedout":
         acctobj.set_locked_out(content_string)
 
-    if valueset:
+    if valueset and acctobj.hasContent_():
         acctobj.set_xsi_type('AccountObj:AccountObjectType')
     elif not valueset:
         acctobj = None
@@ -2221,7 +2221,7 @@ def createWinMemoryPageObj(search_string, content_string, condition):
     if search_string == "ProcessItem/SectionList/MemorySection/Protection":
         wmpobj.set_Protect(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
 
-    if valueset:
+    if valueset and wmpobj.hasContent_():
         wmpobj.set_xsi_type('WinMemoryPageRegionObj:WindowsMemoryPageRegionObjectType')
     elif not valueset:
         wmpobj = None
@@ -2349,7 +2349,7 @@ def createWinProcessObj(search_string, content_string, condition):
     elif search_string == "ProcessItem/SecurityType":
         winprocobj.set_Security_Type(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
 
-    if valueset:
+    if valueset and winprocobj.hasContent_():
         winprocobj.set_xsi_type('WinProcessObj:WindowsProcessObjectType')
     elif not valueset:
         winprocobj = None
