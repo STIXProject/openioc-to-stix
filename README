@@ -14,8 +14,8 @@ CONDITIONS OF USE.  IF YOU DO NOT AGREE TO THESE TERMS, DO NOT USE THIS SCRIPT.
 #Generates STIX Indicator Output from an OpenIOC XML File       #
 #Compatible with STIX v1.0.1 and CybOX v2.0.1                   #
 #                                                               #
-#v0.1 - BETA                                                    #
-#10/17/2013                                                     #
+#v0.11 - BETA                                                    #
+#10/30/2013                                                     #
 #################################################################
 # STIX - http://cybox.mitre.org                                 #
 # CybOX - http://cybox.mitre.org                                #
@@ -55,5 +55,10 @@ There are two main command line parameters for this script:
 
 To use the script, run the following command:
 python openioc_to_stix.py -i <OpenIOC XML file> -o <STIX XML file>
+
+Unsupported indicator items or those that error out during translation will be 
+translated into an empty Observable with a description of the error in order
+to retain structural consistency between the input OpenIOC document and 
+output STIX document. 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
