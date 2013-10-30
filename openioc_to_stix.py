@@ -1,6 +1,6 @@
 # OpenIOC to STIX Script
 # Wraps output of OpenIOC to CybOX Script
-# v0.1
+# v0.11
 
 import sys
 import os
@@ -11,11 +11,11 @@ from cybox.core import Observables
 from stix.indicator import Indicator
 from stix.core import STIXPackage, STIXHeader
 
-__VERSION__ = 0.1
+__VERSION__ = 0.11
 
 USAGE_TEXT = """
 OpenIOC --> STIX Translator
-v0.1 BETA // Compatible with STIX v1.0.1 and CybOX v2.0.1
+v0.11 BETA // Compatible with STIX v1.0.1 and CybOX v2.0.1
 
 Outputs a STIX Package with one or more STIX Indicators containing 
 CybOX Observables translated from an input OpenIOC XML file. 
