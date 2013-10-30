@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<ioc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" id="f5f3181b-955e-4f05-8b3d-37417708eab8" last-modified="2011-10-31T02:19:37" xmlns="http://schemas.mandiant.com/2010/ioc">
+  <short_description>MSBGT (INSTALLER)</short_description>
+  <description>This malware is the dropper executable for the odbm.dll backdoor. This particular variant does not use HTTP requests when communicating with a command/control host, and creates direct connections instead.  Additionally, this instance installs a rootkit driver, msobj.sys. The backdoor provides attackers with the ability to upload and download files, capture keystrokes, take screen captures, decompress and compress Microsoft Cabinet files (.cab), launch other executables, obtain an interactive command shell, view network adapters, reboot the system, steal passwords from memory, modify files and registry, create/terminate processes and obtain a directory listing.</description>
+  <authored_by>Mandiant</authored_by>
+  <authored_date>2011-03-05T12:14:42</authored_date>
+  <links />
+  <definition>
+    <Indicator operator="OR" id="0ce7b6ad-16c6-430c-87ed-8fd047e9940d">
+      <IndicatorItem id="d92b96e8-ebf5-4b13-b662-f262d763dcc0" condition="is">
+        <Context document="FileItem" search="FileItem/Md5sum" type="mir" />
+        <Content type="md5">f7d3e3e7a6424c14d19ba5f5f1679ae3</Content>
+      </IndicatorItem>
+      <IndicatorItem id="bedcbeb6-d164-435f-a9a8-a20cb72c9fdf" condition="is">
+        <Context document="ServiceItem" search="ServiceItem/name" type="mir" />
+        <Content type="string">msobj</Content>
+      </IndicatorItem>
+      <IndicatorItem id="a752a847-eb62-4e27-96f8-7e4a32cc13c9" condition="is">
+        <Context document="ServiceItem" search="ServiceItem/descriptiveName" type="mir" />
+        <Content type="string">msobj</Content>
+      </IndicatorItem>
+      <IndicatorItem id="1c7ed5fd-500b-4f05-b403-1c449df0ba69" condition="contains">
+        <Context document="ServiceItem" search="ServiceItem/path" type="mir" />
+        <Content type="string">\system32\msobj.sys</Content>
+      </IndicatorItem>
+      <IndicatorItem id="ca14ee18-ed5f-4256-b026-31689662e015" condition="is">
+        <Context document="ServiceItem" search="ServiceItem/serviceDLL" type="mir" />
+        <Content type="string">c:\windows\system32\odbm.dll</Content>
+      </IndicatorItem>
+      <IndicatorItem id="760b6cf4-d932-46ac-af99-0a3d3ca83257" condition="is">
+        <Context document="ServiceItem" search="ServiceItem/serviceDLL" type="mir" />
+        <Content type="string">c:\winnt\system32\odbm.dll</Content>
+      </IndicatorItem>
+      <IndicatorItem id="f7b517dd-df17-4408-8f82-fccf4a152099" condition="contains">
+        <Context document="FileItem" search="FileItem/FullPath" type="mir" />
+        <Content type="string">\system32\mstemp.temp</Content>
+      </IndicatorItem>
+      <IndicatorItem id="d432f571-0bc6-4e56-a006-adf2cd8e9d12" condition="contains">
+        <Context document="FileItem" search="FileItem/FullPath" type="mir" />
+        <Content type="string">\system32\dftemp.temp</Content>
+      </IndicatorItem>
+      <IndicatorItem id="902cd4d9-ebcb-440b-80cf-b3ed7207b506" condition="contains">
+        <Context document="FileItem" search="FileItem/FullPath" type="mir" />
+        <Content type="string">\system32\perfdi.ini</Content>
+      </IndicatorItem>
+      <IndicatorItem id="cc521ed9-c49b-46aa-82c2-a551edf3dcf0" condition="is">
+        <Context document="ProcessItem" search="ProcessItem/HandleList/Handle/Name" type="mir" />
+        <Content type="string">THIS324NEWGAME</Content>
+      </IndicatorItem>
+      <IndicatorItem id="1702af63-e6ae-4448-88b2-ce73f6ac9674" condition="is">
+        <Context document="ProcessItem" search="ProcessItem/HandleList/Handle/Name" type="mir" />
+        <Content type="string">watchevent29021803</Content>
+      </IndicatorItem>
+      <IndicatorItem id="03275909-2ddd-405e-8be4-7298f0fd3dcb" condition="is">
+        <Context document="ProcessItem" search="ProcessItem/HandleList/Handle/Name" type="mir" />
+        <Content type="string">iamwaitingforu653890</Content>
+      </IndicatorItem>
+      <IndicatorItem id="fcd85cfa-b511-4749-989a-a1887efe3fcb" condition="is">
+        <Context document="PortItem" search="PortItem/remoteIP" type="mir" />
+        <Content type="IP">65.55.1.250</Content>
+      </IndicatorItem>
+      <IndicatorItem id="b60777bd-36cf-4795-b926-13fab64abcb5" condition="contains">
+        <Context document="ProcessItem" search="ProcessItem/HandleList/Handle/Name" type="mir" />
+        <Content type="string">DevCtrlKrnl</Content>
+      </IndicatorItem>
+      <Indicator operator="AND" id="95943ada-0c61-48d3-a588-41dab83fa3de">
+        <IndicatorItem id="a151dec1-80b3-429d-a776-c69c9563063c" condition="is">
+          <Context document="ProcessItem" search="ProcessItem/name" type="mir" />
+          <Content type="string">IEXPLORE.EXE</Content>
+        </IndicatorItem>
+        <Indicator operator="OR" id="03c56de0-b5ff-4523-b6ac-7fdb160ff591">
+          <IndicatorItem id="71dee5c3-8644-47ea-bd18-c9d0e5a36bfd" condition="is">
+            <Context document="ProcessItem" search="ProcessItem/SectionList/MemorySection/Name" type="mir" />
+            <Content type="string">c:\windows\system32\odbm.dll</Content>
+          </IndicatorItem>
+          <IndicatorItem id="9c3a0c9b-4ed2-4c9b-8c12-48bb1e0063a9" condition="is">
+            <Context document="ProcessItem" search="ProcessItem/SectionList/MemorySection/Name" type="mir" />
+            <Content type="string">c:\winnt\system32\odbm.dll</Content>
+          </IndicatorItem>
+          <IndicatorItem id="b8d0d0e7-4a64-4fa2-b4f5-f863bec50f95" condition="contains">
+            <Context document="ProcessItem" search="ProcessItem/arguments" type="mir" />
+            <Content type="string">about:blank</Content>
+          </IndicatorItem>
+        </Indicator>
+      </Indicator>
+      <Indicator operator="AND" id="41b620cf-c280-4162-b96b-860d3cd1091f">
+        <IndicatorItem id="8483be5d-7db1-4abe-9389-56ce1e2cc8a5" condition="is">
+          <Context document="HookItem" search="HookItem/HookingModule" type="mir" />
+          <Content type="string">msobj.sys</Content>
+        </IndicatorItem>
+        <Indicator operator="OR" id="1737be78-3089-496d-93ba-808adae12722">
+          <IndicatorItem id="67d9b945-1f9f-4e4d-9dae-65e1c92faa40" condition="is">
+            <Context document="HookItem" search="HookItem/HookedFunction" type="mir" />
+            <Content type="string">NtQuerySystemInformation</Content>
+          </IndicatorItem>
+          <IndicatorItem id="b138da2d-b593-46fe-bc3c-2e1f42b6fc9f" condition="is">
+            <Context document="HookItem" search="HookItem/HookedFunction" type="mir" />
+            <Content type="string">NtDeviceIoControlFile</Content>
+          </IndicatorItem>
+          <IndicatorItem id="7a1659b2-922b-47dd-8de2-ff04be630ae4" condition="is">
+            <Context document="HookItem" search="HookItem/HookedFunction" type="mir" />
+            <Content type="string">NtQueryDirectoryFile</Content>
+          </IndicatorItem>
+        </Indicator>
+      </Indicator>
+    </Indicator>
+  </definition>
+</ioc>

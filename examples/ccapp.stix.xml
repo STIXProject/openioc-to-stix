@@ -1,0 +1,117 @@
+<stix:STIX_Package id="stix:guid-09802970-416b-11e3-87b7-14109fd59029" version="1.0.1" xmlns:CodeObj="http://cybox.mitre.org/objects#CodeObject-2" xmlns:ioc-tr="http://schemas.mandiant.com/2010/ioc/TR/" xmlns:GUIObj="http://cybox.mitre.org/objects#GUIObject-2" xmlns:ioc="http://schemas.mandiant.com/2010/ioc" xmlns:WinNetworkRouteEntryObj="http://cybox.mitre.org/objects#WinNetworkRouteEntryObject-2" xmlns:WinDriverObj="http://cybox.mitre.org/objects#WinDriverObject-2" xmlns:PDFFileObj="http://cybox.mitre.org/objects#PDFFileObject-1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:DiskObj="http://cybox.mitre.org/objects#DiskObject-2" xmlns:UserAccountObj="http://cybox.mitre.org/objects#UserAccountObject-2" xmlns:CustomObj="http://cybox.mitre.org/objects#CustomObject-1" xmlns:coa="http://stix.mitre.org/CourseOfAction-1" xmlns:AddressObj="http://cybox.mitre.org/objects#AddressObject-2" xmlns:UserSessionObj="http://cybox.mitre.org/objects#UserSessionObject-2" xmlns:cvrf="http://www.icasi.org/CVRF/schema/cvrf/1.1" xmlns:WinPipeObj="http://cybox.mitre.org/objects#WinPipeObject-2" xmlns:ArtifactObj="http://cybox.mitre.org/objects#ArtifactObject-2" xmlns:PacketObj="http://cybox.mitre.org/objects#PacketObject-2" xmlns:incident="http://stix.mitre.org/Incident-1" xmlns:HTTPSessionObj="http://cybox.mitre.org/objects#HTTPSessionObject-2" xmlns:WinCriticalSectionObj="http://cybox.mitre.org/objects#WinCriticalSectionObject-2" xmlns:DeviceObj="http://cybox.mitre.org/objects#DeviceObject-2" xmlns:WinVolumeObj="http://cybox.mitre.org/objects#WinVolumeObject-2" xmlns:UnixProcessObj="http://cybox.mitre.org/objects#UnixProcessObject-2" xmlns:MutexObj="http://cybox.mitre.org/objects#MutexObject-2" xmlns:scap-core="http://scap.nist.gov/schema/scap-core/1.0" xmlns:WinSystemRestoreObj="http://cybox.mitre.org/objects#WinSystemRestoreObject-2" xmlns:WinMailslotObj="http://cybox.mitre.org/objects#WinMailslotObject-2" xmlns:WinFileObj="http://cybox.mitre.org/objects#WinFileObject-2" xmlns:DiskPartitionObj="http://cybox.mitre.org/objects#DiskPartitionObject-2" xmlns:ciq="urn:oasis:names:tc:ciq:xpil:3" xmlns:WinSystemObj="http://cybox.mitre.org/objects#WinSystemObject-2" xmlns:PipeObj="http://cybox.mitre.org/objects#PipeObject-2" xmlns:ttp="http://stix.mitre.org/TTP-1" xmlns:UnixUserAccountObj="http://cybox.mitre.org/objects#UnixUserAccountObject-2" xmlns:WinMemoryPageRegionObj="http://cybox.mitre.org/objects#WinMemoryPageRegionObject-2" xmlns:NetworkSubnetObj="http://cybox.mitre.org/objects#NetworkSubnetObject-2" xmlns:UnixPipeObj="http://cybox.mitre.org/objects#UnixPipeObject-2" xmlns:WinProcessObj="http://cybox.mitre.org/objects#WinProcessObject-2" xmlns:ciqAddress="http://stix.mitre.org/extensions/Address#CIQAddress3.0-1" xmlns:SemaphoreObj="http://cybox.mitre.org/objects#SemaphoreObject-2" xmlns:cvrfVuln="http://stix.mitre.org/extensions/Vulnerability#CVRF-1" xmlns:WinEventObj="http://cybox.mitre.org/objects#WinEventObject-2" xmlns:EmailMessageObj="http://cybox.mitre.org/objects#EmailMessageObject-2" xmlns:WinWaitableTimerObj="http://cybox.mitre.org/objects#WinWaitableTimerObject-2" xmlns:WhoisObj="http://cybox.mitre.org/objects#WhoisObject-2" xmlns:ProcessObj="http://cybox.mitre.org/objects#ProcessObject-2" xmlns:capec="http://capec.mitre.org/capec-2" xmlns:capecInstance="http://stix.mitre.org/extensions/AP#CAPEC2.6-1" xmlns:genericTM="http://stix.mitre.org/extensions/TestMechanism#Generic-1" xmlns:oval="http://oval.mitre.org/XMLSchema/oval-common-5" xmlns:WinSemaphoreObj="http://cybox.mitre.org/objects#WinSemaphoreObject-2" xmlns:NetworkRouteEntryObj="http://cybox.mitre.org/objects#NetworkRouteEntryObject-2" xmlns:stixVocabs="http://stix.mitre.org/default_vocabularies-1" xmlns:VolumeObj="http://cybox.mitre.org/objects#VolumeObject-2" xmlns:DNSQueryObj="http://cybox.mitre.org/objects#DNSQueryObject-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:WinUserAccountObj="http://cybox.mitre.org/objects#WinUserAccountObject-2" xmlns:campaign="http://stix.mitre.org/Campaign-1" xmlns:snortTM="http://stix.mitre.org/extensions/TestMechanism#Snort-1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:PortObj="http://cybox.mitre.org/objects#PortObject-2" xmlns:UnixVolumeObj="http://cybox.mitre.org/objects#UnixVolumeObject-2" xmlns:maec="http://maec.mitre.org/XMLSchema/maec-package-2" xmlns:NetworkSocketObj="http://cybox.mitre.org/objects#NetworkSocketObject-2" xmlns:GUIDialogBoxObj="http://cybox.mitre.org/objects#GUIDialogboxObject-2" xmlns:LibraryObj="http://cybox.mitre.org/objects#LibraryObject-2" xmlns:WinThreadObj="http://cybox.mitre.org/objects#WinThreadObject-2" xmlns:cvrf-common="http://www.icasi.org/CVRF/schema/common/1.1" xmlns:NetworkConnectionObj="http://cybox.mitre.org/objects#NetworkConnectionObject-2" xmlns:ovalTM="http://stix.mitre.org/extensions/TestMechanism#OVAL5.10-1" xmlns:tlpMarking="http://data-marking.mitre.org/extensions/MarkingStructure#TLP-1" xmlns:WinKernelHookObj="http://cybox.mitre.org/objects#WinKernelHookObject-2" xmlns:WinComputerAccountObj="http://cybox.mitre.org/objects#WinComputerAccountObject-2" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:LinuxPackageObj="http://cybox.mitre.org/objects#LinuxPackageObject-2" xmlns:sch="http://purl.oclc.org/dsdl/schematron" xmlns:yaraTM="http://stix.mitre.org/extensions/TestMechanism#YARA-1" xmlns:prod="http://www.icasi.org/CVRF/schema/prod/1.1" xmlns:DNSCacheObj="http://cybox.mitre.org/objects#DNSCacheObject-2" xmlns:UnixFileObj="http://cybox.mitre.org/objects#UnixFileObject-2" xmlns:NetFlowObj="http://cybox.mitre.org/objects#NetworkFlowObject-2" xmlns:cyboxVocabs="http://cybox.mitre.org/default_vocabularies-2" xmlns:openiocTM="http://stix.mitre.org/extensions/TestMechanism#OpenIOC2010-1" xmlns:WinRegistryKeyObj="http://cybox.mitre.org/objects#WinRegistryKeyObject-2" xmlns:ProductObj="http://cybox.mitre.org/objects#ProductObject-2" xmlns:WinHandleObj="http://cybox.mitre.org/objects#WinHandleObject-2" xmlns:oval-var="http://oval.mitre.org/XMLSchema/oval-variables-5" xmlns:a="urn:oasis:names:tc:ciq:xal:3" xmlns:cvssv2="http://scap.nist.gov/schema/cvss-v2/1.0" xmlns:WinEventLogObj="http://cybox.mitre.org/objects#WinEventLogObject-2" xmlns:vuln="http://www.icasi.org/CVRF/schema/vuln/1.1" xmlns:simpleMarking="http://data-marking.mitre.org/extensions/MarkingStructure#Simple-1" xmlns:APIObj="http://cybox.mitre.org/objects#APIObject-2" xmlns:genericStructuredCOA="http://stix.mitre.org/extensions/StructuredCOA#Generic-1" xmlns:ct="urn:oasis:names:tc:ciq:ct:3" xmlns:SystemObj="http://cybox.mitre.org/objects#SystemObject-2" xmlns:DNSRecordObj="http://cybox.mitre.org/objects#DNSRecordObject-2" xmlns:stixCommon="http://stix.mitre.org/common-1" xmlns:WinServiceObj="http://cybox.mitre.org/objects#WinServiceObject-2" xmlns:cyboxCommon="http://cybox.mitre.org/common-2" xmlns:cpe="http://cpe.mitre.org/language/2.0" xmlns:FileObj="http://cybox.mitre.org/objects#FileObject-2" xmlns:GUIWindowObj="http://cybox.mitre.org/objects#GUIWindowObject-2" xmlns:WinPrefetchObj="http://cybox.mitre.org/objects#WinPrefetchObject-2" xmlns:WinKernelObj="http://cybox.mitre.org/objects#WinKernelObject-2" xmlns:stix="http://stix.mitre.org/stix-1" xmlns:cybox="http://cybox.mitre.org/cybox-2" xmlns:indicator="http://stix.mitre.org/Indicator-2" xmlns:marking="http://data-marking.mitre.org/Marking-1" xmlns:URIObj="http://cybox.mitre.org/objects#URIObject-2" xmlns:ta="http://stix.mitre.org/ThreatActor-1" xmlns:MemoryObj="http://cybox.mitre.org/objects#MemoryObject-2" xmlns:WinTaskObj="http://cybox.mitre.org/objects#WinTaskObject-2" xmlns:SocketAddressObj="http://cybox.mitre.org/objects#SocketAddressObject-1" xmlns:WinMutexObj="http://cybox.mitre.org/objects#WinMutexObject-2" xmlns:et="http://stix.mitre.org/ExploitTarget-1" xmlns:WinExecutableFileObj="http://cybox.mitre.org/objects#WinExecutableFileObject-2" xmlns:WinNetworkShareObj="http://cybox.mitre.org/objects#WinNetworkShareObject-2" xmlns:LinkObj="http://cybox.mitre.org/objects#LinkObject-1" xmlns:NetworkRouteObj="http://cybox.mitre.org/objects#NetworkRouteObject-2" xmlns:xnl="urn:oasis:names:tc:ciq:xnl:3" xmlns:X509CertificateObj="http://cybox.mitre.org/objects#X509CertificateObject-2" xmlns:maecInstance="http://stix.mitre.org/extensions/Malware#MAEC4.0-1" xmlns:UnixNetworkRouteEntryObj="http://cybox.mitre.org/objects#UnixNetworkRouteEntryObject-2" xmlns:oval-def="http://oval.mitre.org/XMLSchema/oval-definitions-5" xmlns:ciqIdentity="http://stix.mitre.org/extensions/Identity#CIQIdentity3.0-1" xmlns:AccountObj="http://cybox.mitre.org/objects#AccountObject-2" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <stix:STIX_Header>
+        <stix:Package_Intent  xsi:type="stixVocabs:PackageIntentVocab-1.0">Indicators - Malware Artifacts</stix:Package_Intent>
+        <stix:Description>CybOX-represented Indicators Translated from OpenIOC File</stix:Description>
+    </stix:STIX_Header>
+    <stix:Indicators>
+        <stix:Indicator xmlns:indicator='http://stix.mitre.org/Indicator-2' xsi:type='indicator:IndicatorType' negate="false">
+            <indicator:Title>CybOX-represented Indicator Created from OpenIOC File</indicator:Title>
+            <indicator:Observable id="openioc:indicator-d610019c-379f-4d3e-b299-f0b0e5c3313a">
+                <cybox:Title>Custom Reverse shell.</cybox:Title>
+                <cybox:Observable_Composition operator="OR">
+                    <cybox:Observable id="openioc:indicator-item-86d0e6fc-ff41-4743-8a9a-c323ef8ad8cb">
+                        <cybox:Object>
+                            <cybox:Properties xsi:type="FileObj:FileObjectType">
+                                <FileObj:Hashes>
+                                    <cyboxCommon:Hash>
+                                        <cyboxCommon:Type xsi:type="cyboxVocabs:HashNameVocab-1.0">MD5</cyboxCommon:Type>
+                                        <cyboxCommon:Simple_Hash_Value condition="Equals">9855c23be2b6f38630756a277b52cdd2</cyboxCommon:Simple_Hash_Value>
+                                    </cyboxCommon:Hash>
+                                </FileObj:Hashes>
+                            </cybox:Properties>
+                        </cybox:Object>
+                    </cybox:Observable>
+                    <cybox:Observable id="openioc:indicator-item-78c1c4c9-500f-40b3-be62-4c16b5058da9">
+                        <cybox:Object>
+                            <cybox:Properties xsi:type="FileObj:FileObjectType">
+                                <FileObj:Hashes>
+                                    <cyboxCommon:Hash>
+                                        <cyboxCommon:Type xsi:type="cyboxVocabs:HashNameVocab-1.0">MD5</cyboxCommon:Type>
+                                        <cyboxCommon:Simple_Hash_Value condition="Equals">acb81bee009b09b2a0688f05ea45851f</cyboxCommon:Simple_Hash_Value>
+                                    </cyboxCommon:Hash>
+                                </FileObj:Hashes>
+                            </cybox:Properties>
+                        </cybox:Object>
+                    </cybox:Observable>
+                    <cybox:Observable id="openioc:indicator-3902a731-260b-49e8-84a5-77d2a420716e">
+                        <cybox:Observable_Composition operator="AND">
+                            <cybox:Observable id="openioc:indicator-item-034d5703-bc58-4a09-9333-e24cf4c41fe9">
+                                <cybox:Object>
+                                    <cybox:Properties xsi:type="WinExecutableFileObj:WindowsExecutableFileObjectType">
+                                        <WinExecutableFileObj:Sections>
+                                            <WinExecutableFileObj:Section>
+                                                <WinExecutableFileObj:Section_Header>
+                                                    <WinExecutableFileObj:Name condition="Contains">.vmp0</WinExecutableFileObj:Name>
+                                                </WinExecutableFileObj:Section_Header>
+                                            </WinExecutableFileObj:Section>
+                                        </WinExecutableFileObj:Sections>
+                                    </cybox:Properties>
+                                </cybox:Object>
+                            </cybox:Observable>
+                            <cybox:Observable id="openioc:indicator-item-17dba1f2-9ee8-46a4-8b4f-c7ede9621c20">
+                                <cybox:Description><![CDATA[Error|Ignore. IndicatorItem not translated. Encountered IOC term FileItem/PEInfo/DetectedAnomalies/string, which does not currently map to CybOX.]]></cybox:Description>
+                            </cybox:Observable>
+                            <cybox:Observable id="openioc:indicator-item-50ae07d2-90ab-45b9-8424-d998db6debba">
+                                <cybox:Object>
+                                    <cybox:Properties xsi:type="WinExecutableFileObj:WindowsExecutableFileObjectType">
+                                        <WinExecutableFileObj:Sections>
+                                            <WinExecutableFileObj:Section>
+                                                <WinExecutableFileObj:Section_Header>
+                                                    <WinExecutableFileObj:Name condition="Contains">.vmp1</WinExecutableFileObj:Name>
+                                                </WinExecutableFileObj:Section_Header>
+                                            </WinExecutableFileObj:Section>
+                                        </WinExecutableFileObj:Sections>
+                                    </cybox:Properties>
+                                </cybox:Object>
+                            </cybox:Observable>
+                            <cybox:Observable id="openioc:indicator-d9ed6d3a-7141-418d-9ee9-79254b45348a">
+                                <cybox:Observable_Composition operator="OR">
+                                    <cybox:Observable id="openioc:indicator-item-c4638d8f-d5fb-48b4-80b3-49c178cf73b7">
+                                        <cybox:Object>
+                                            <cybox:Properties xsi:type="FileObj:FileObjectType">
+                                                <FileObj:File_Name condition="Equals">wbc.exe</FileObj:File_Name>
+                                            </cybox:Properties>
+                                        </cybox:Object>
+                                    </cybox:Observable>
+                                    <cybox:Observable id="openioc:indicator-item-76cbdd31-1af4-4fad-9d20-f879f3cb159d">
+                                        <cybox:Object>
+                                            <cybox:Properties xsi:type="FileObj:FileObjectType">
+                                                <FileObj:File_Name condition="Equals">ccapp.exe</FileObj:File_Name>
+                                            </cybox:Properties>
+                                        </cybox:Object>
+                                    </cybox:Observable>
+                                </cybox:Observable_Composition>
+                            </cybox:Observable>
+                            <cybox:Observable id="openioc:indicator-05a19916-392a-4835-8be2-1ab385005912">
+                                <cybox:Observable_Composition operator="OR">
+                                    <cybox:Observable id="openioc:indicator-item-5257856b-6f59-4ca6-9fe1-33d4e2e6c43e">
+                                        <cybox:Object>
+                                            <cybox:Properties xsi:type="FileObj:FileObjectType">
+                                                <FileObj:File_Path condition="Contains">WINDOWS</FileObj:File_Path>
+                                            </cybox:Properties>
+                                        </cybox:Object>
+                                    </cybox:Observable>
+                                    <cybox:Observable id="openioc:indicator-item-7544b3ce-6673-4dd6-9126-325cc4b57023">
+                                        <cybox:Object>
+                                            <cybox:Properties xsi:type="FileObj:FileObjectType">
+                                                <FileObj:File_Path condition="Contains">WINNT</FileObj:File_Path>
+                                            </cybox:Properties>
+                                        </cybox:Object>
+                                    </cybox:Observable>
+                                </cybox:Observable_Composition>
+                            </cybox:Observable>
+                        </cybox:Observable_Composition>
+                    </cybox:Observable>
+                </cybox:Observable_Composition>
+            </indicator:Observable>
+            <indicator:Producer>
+                <stixCommon:Tools>
+                    <cyboxCommon:Tool>
+                        <cyboxCommon:Name>OpenIOC to STIX Utility</cyboxCommon:Name>
+                        <cyboxCommon:Version>0.11</cyboxCommon:Version>
+                    </cyboxCommon:Tool>
+                </stixCommon:Tools>
+            </indicator:Producer>
+        </stix:Indicator>
+    </stix:Indicators>
+</stix:STIX_Package>

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<ioc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" id="72669174-dd77-4a4e-82ed-99a96784f36e" last-modified="2012-01-05T02:49:14" xmlns="http://schemas.mandiant.com/2010/ioc">
+  <short_description>DUQU (METHODOLOGY)</short_description>
+  <description>Indicator for the duqu trojan. The initial duqu driver will decode and inject a dll (marked as .pnf) into a system process (usually services.exe).  The injected dll contains another dll encoded within it's resource section which it will inject into other processes as identified within its encoded configuruation file (another .pnf file).  This second injected dll is responsible for all backdoor/C2 communication.</description>
+  <authored_by>MANDIANT</authored_by>
+  <authored_date>2011-10-21T16:13:31</authored_date>
+  <links>
+    <link rel="caveat">Methodology</link>
+  </links>
+  <definition>
+    <Indicator operator="OR" id="9fd46693-ee1c-4d31-b732-35bf952651e3">
+      <Indicator operator="AND" id="e4deb0af-7558-498e-b953-6e70ec694767">
+        <IndicatorItem id="d5b29cfe-8599-498a-b805-326273fe10c5" condition="contains">
+          <Context document="FileItem" search="FileItem/PEInfo/DigitalSignature/CertificateSubject" type="mir" />
+          <Content type="string">C-Media Electronics Incorporation</Content>
+        </IndicatorItem>
+        <IndicatorItem id="1ca2947c-0b26-409c-93d2-28f6b364bc0b" condition="contains">
+          <Context document="FileItem" search="FileItem/FileName" type="mir" />
+          <Content type="string">cmi4432.sys</Content>
+        </IndicatorItem>
+      </Indicator>
+      <Indicator operator="AND" id="025d5bf1-e062-4300-a24a-e2d1c9877f1c">
+        <IndicatorItem id="8a9e777b-ebbb-4494-ab05-acf39a3f6e48" condition="is">
+          <Context document="DriverItem" search="DriverItem/DeviceItem/DeviceName" type="mir" />
+          <Content type="string">Gpd1</Content>
+        </IndicatorItem>
+        <Indicator operator="OR" id="3cfe6f4c-3276-4e8b-88d5-9b53665da358">
+          <IndicatorItem id="0a704ede-840d-4075-a508-3ee5744c332f" condition="is">
+            <Context document="DriverItem" search="DriverItem/DeviceItem/DeviceName" type="mir" />
+            <Content type="string">{3093AAZ3-1092-2929-9391}</Content>
+          </IndicatorItem>
+          <IndicatorItem id="09900e0b-8219-43dc-930b-fabf5324da4e" condition="is">
+            <Context document="DriverItem" search="DriverItem/DeviceItem/DeviceName" type="mir" />
+            <Content type="string">{624409B3-4CEF-41C0-8B81-7634279A41E5}</Content>
+          </IndicatorItem>
+        </Indicator>
+      </Indicator>
+      <Indicator operator="AND" id="d0f65908-5a1a-4936-98e0-cf98ba51037e">
+        <IndicatorItem id="b38d3a14-3839-4c62-ae38-3ff48b720add" condition="contains">
+          <Context document="RegistryItem" search="RegistryItem/Path" type="mir" />
+          <Content type="string">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Zones\4</Content>
+        </IndicatorItem>
+        <Indicator operator="OR" id="e415d391-871f-44b9-8fd3-70967644d36f">
+          <IndicatorItem id="bcf49307-8362-4f05-998c-a8dd629dbb7d" condition="is">
+            <Context document="RegistryItem" search="RegistryItem/ValueName" type="mir" />
+            <Content type="string">CF1D</Content>
+          </IndicatorItem>
+          <IndicatorItem id="c13f696c-53ef-4102-b462-4fb9623f2ac5" condition="is">
+            <Context document="RegistryItem" search="RegistryItem/ValueName" type="mir" />
+            <Content type="string">CFID</Content>
+          </IndicatorItem>
+        </Indicator>
+      </Indicator>
+      <Indicator operator="AND" id="e59031e1-1a15-42be-8cae-198e69c88ced">
+        <IndicatorItem id="0f00f74d-c2ff-4c24-9334-bcfa8430a00b" condition="is">
+          <Context document="EventLogItem" search="EventLogItem/type" type="mir" />
+          <Content type="string">Error</Content>
+        </IndicatorItem>
+        <IndicatorItem id="a3ae813d-27b1-49d5-8057-04d0702eb3ee" condition="is">
+          <Context document="EventLogItem" search="EventLogItem/source" type="mir" />
+          <Content type="string">DCOM</Content>
+        </IndicatorItem>
+        <IndicatorItem id="a10fc902-a5fa-4f1a-87a7-ad7855066be1" condition="is">
+          <Context document="EventLogItem" search="EventLogItem/EID" type="mir" />
+          <Content type="int">3221235481</Content>
+        </IndicatorItem>
+      </Indicator>
+      <Indicator operator="AND" id="48479d30-7791-486c-8bb9-2f82bb333ee3">
+        <IndicatorItem id="62dba9e1-0e60-49a9-9e09-1b6c9d393d83" condition="is">
+          <Context document="ProcessItem" search="ProcessItem/name" type="mir" />
+          <Content type="string">services.exe</Content>
+        </IndicatorItem>
+        <IndicatorItem id="22c5d023-55b4-4857-9bf0-a5d56395a2eb" condition="is">
+          <Context document="ProcessItem" search="ProcessItem/SectionList/MemorySection/Injected" type="mir" />
+          <Content type="string">TRUE</Content>
+        </IndicatorItem>
+        <IndicatorItem id="ccb95100-7cb4-445f-833e-12c2ff460617" condition="is">
+          <Context document="ProcessItem" search="ProcessItem/HandleList/Handle/Name" type="mir" />
+          <Content type="string">{0de1ac9d-35da-433f-937a-8553016874f1}</Content>
+        </IndicatorItem>
+        <IndicatorItem id="eaa86c31-fcf5-4565-be04-b6a0cea1c3ab" condition="is">
+          <Context document="ProcessItem" search="ProcessItem/HandleList/Handle/Name" type="mir" />
+          <Content type="string">{0df29544-7ded-4091-a8e6-b87402e6064c}2</Content>
+        </IndicatorItem>
+        <IndicatorItem id="9adc21a9-26a9-4614-abb0-24e510e17c54" condition="is">
+          <Context document="ProcessItem" search="ProcessItem/HandleList/Handle/Name" type="mir" />
+          <Content type="string">{92D9FA5C-D148-476E-BCC9-A4BEAC2E70D7}</Content>
+        </IndicatorItem>
+      </Indicator>
+      <Indicator operator="AND" id="bc47e9cf-0463-47ad-bcf4-f7ab394936ae">
+        <IndicatorItem id="43fb1d62-cc30-493b-9229-216c4ec1e362" condition="is">
+          <Context document="ProcessItem" search="ProcessItem/name" type="mir" />
+          <Content type="string">lsass.exe</Content>
+        </IndicatorItem>
+        <IndicatorItem id="de03fbaa-253f-429f-85b8-cbd58cab2d6f" condition="containsnot">
+          <Context document="ProcessItem" search="ProcessItem/SectionList/MemorySection/Name" type="mir" />
+          <Content type="string">lsass.exe</Content>
+        </IndicatorItem>
+        <IndicatorItem id="88b75212-b0de-487a-958a-6c13b49a9714" condition="is">
+          <Context document="ProcessItem" search="ProcessItem/SectionList/MemorySection/Injected" type="mir" />
+          <Content type="string">TRUE</Content>
+        </IndicatorItem>
+      </Indicator>
+      <Indicator operator="AND" id="1bd40f96-b1bc-43ef-b482-5d2e81fa6da7">
+        <IndicatorItem id="2e0bd752-975b-4155-94ad-2ab760a9a53a" condition="is">
+          <Context document="ProcessItem" search="ProcessItem/name" type="mir" />
+          <Content type="string">winlogon.exe</Content>
+        </IndicatorItem>
+        <IndicatorItem id="174d0bcd-4325-44f6-805d-87dce4c51b47" condition="containsnot">
+          <Context document="ProcessItem" search="ProcessItem/SectionList/MemorySection/Name" type="mir" />
+          <Content type="string">winlogon.exe</Content>
+        </IndicatorItem>
+        <IndicatorItem id="5215ed3f-7795-4689-801b-13373da473f6" condition="is">
+          <Context document="ProcessItem" search="ProcessItem/SectionList/MemorySection/Injected" type="mir" />
+          <Content type="string">TRUE</Content>
+        </IndicatorItem>
+      </Indicator>
+      <Indicator operator="AND" id="37897b71-89cf-46dc-8e77-a4f731cb1d92">
+        <IndicatorItem id="80a37c9e-ab5d-461d-ba3f-9a5ccbf65779" condition="contains">
+          <Context document="ProcessItem" search="ProcessItem/name" type="mir" />
+          <Content type="string">svchost.exe</Content>
+        </IndicatorItem>
+        <IndicatorItem id="5fcc9fc2-a470-4cce-97c9-6d96dc94a57f" condition="containsnot">
+          <Context document="ProcessItem" search="ProcessItem/SectionList/MemorySection/Name" type="mir" />
+          <Content type="string">svchost.exe</Content>
+        </IndicatorItem>
+        <IndicatorItem id="dc046b4b-a0a8-47e5-92c9-e3e8c73679d6" condition="is">
+          <Context document="ProcessItem" search="ProcessItem/SectionList/MemorySection/Injected" type="mir" />
+          <Content type="string">TRUE</Content>
+        </IndicatorItem>
+      </Indicator>
+    </Indicator>
+  </definition>
+</ioc>

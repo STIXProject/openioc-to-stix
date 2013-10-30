@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<ioc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" id="fc2d3e44-80a6-4add-ad94-de9f289e62ff" last-modified="2011-10-28T21:00:13" xmlns="http://schemas.mandiant.com/2010/ioc">
+  <short_description>CCAPP.EXE</short_description>
+  <description>Custom Reverse shell.</description>
+  <keywords />
+  <authored_by>Mandiant</authored_by>
+  <authored_date>2010-12-13T12:49:53</authored_date>
+  <links>
+    <link rel="grade">Alpha</link>
+  </links>
+  <definition>
+    <Indicator operator="OR" id="d610019c-379f-4d3e-b299-f0b0e5c3313a">
+      <IndicatorItem id="86d0e6fc-ff41-4743-8a9a-c323ef8ad8cb" condition="is">
+        <Context document="FileItem" search="FileItem/Md5sum" type="mir" />
+        <Content type="md5">9855c23be2b6f38630756a277b52cdd2</Content>
+      </IndicatorItem>
+      <IndicatorItem id="78c1c4c9-500f-40b3-be62-4c16b5058da9" condition="is">
+        <Context document="FileItem" search="FileItem/Md5sum" type="mir" />
+        <Content type="md5">acb81bee009b09b2a0688f05ea45851f</Content>
+      </IndicatorItem>
+      <Indicator operator="AND" id="3902a731-260b-49e8-84a5-77d2a420716e">
+        <IndicatorItem id="034d5703-bc58-4a09-9333-e24cf4c41fe9" condition="contains">
+          <Context document="FileItem" search="FileItem/PEInfo/Sections/Section/Name" type="mir" />
+          <Content type="string">.vmp0</Content>
+        </IndicatorItem>
+        <IndicatorItem id="17dba1f2-9ee8-46a4-8b4f-c7ede9621c20" condition="contains">
+          <Context document="FileItem" search="FileItem/PEInfo/DetectedAnomalies/string" type="mir" />
+          <Content type="string">checksum_is_zero</Content>
+        </IndicatorItem>
+        <IndicatorItem id="50ae07d2-90ab-45b9-8424-d998db6debba" condition="contains">
+          <Context document="FileItem" search="FileItem/PEInfo/Sections/Section/Name" type="mir" />
+          <Content type="string">.vmp1</Content>
+        </IndicatorItem>
+        <Indicator operator="OR" id="d9ed6d3a-7141-418d-9ee9-79254b45348a">
+          <IndicatorItem id="c4638d8f-d5fb-48b4-80b3-49c178cf73b7" condition="is">
+            <Context document="FileItem" search="FileItem/FileName" type="mir" />
+            <Content type="string">wbc.exe</Content>
+          </IndicatorItem>
+          <IndicatorItem id="76cbdd31-1af4-4fad-9d20-f879f3cb159d" condition="is">
+            <Context document="FileItem" search="FileItem/FileName" type="mir" />
+            <Content type="string">ccapp.exe</Content>
+          </IndicatorItem>
+        </Indicator>
+        <Indicator operator="OR" id="05a19916-392a-4835-8be2-1ab385005912">
+          <IndicatorItem id="5257856b-6f59-4ca6-9fe1-33d4e2e6c43e" condition="contains">
+            <Context document="FileItem" search="FileItem/FilePath" type="mir" />
+            <Content type="string">WINDOWS</Content>
+          </IndicatorItem>
+          <IndicatorItem id="7544b3ce-6673-4dd6-9126-325cc4b57023" condition="contains">
+            <Context document="FileItem" search="FileItem/FilePath" type="mir" />
+            <Content type="string">WINNT</Content>
+          </IndicatorItem>
+        </Indicator>
+      </Indicator>
+    </Indicator>
+  </definition>
+</ioc>

@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<ioc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" id="e651c4e4-6cce-4cfc-8bd4-ebc203907ef4" last-modified="2011-09-23T16:14:51" xmlns="http://schemas.mandiant.com/2010/ioc">
+  <short_description>SHELLDC.DLL (BACKDOOR)</short_description>
+  <description>This malware is designed to be installed as a service. It provides file transfer, file copy, move, delete and setting of file attributes, command execution, interactive command shell, registry browsing, listing of RDP connected users and full remote desktop GUI interactivity via a custom protocol.</description>
+  <keywords>backdoor</keywords>
+  <authored_by>Mandiant</authored_by>
+  <authored_date>0001-01-01T00:00:00</authored_date>
+  <links />
+  <definition>
+    <Indicator operator="OR" id="05c79430-5f11-4cd0-b37b-f98252318760">
+      <IndicatorItem id="d4af91d9-6a74-4cf4-b009-991781b826e0" condition="is">
+        <Context document="FileItem" search="FileItem/FileName" type="mir" />
+        <Content type="string">shelldc.dll</Content>
+      </IndicatorItem>
+      <IndicatorItem id="39c7446b-5603-42ac-b809-c7486ec85701" condition="is">
+        <Context document="FileItem" search="FileItem/FileName" type="mir" />
+        <Content type="string">recyle64.dll</Content>
+      </IndicatorItem>
+      <IndicatorItem id="f08fc523-1df2-43d8-9906-5b7912cd2a31" condition="is">
+        <Context document="FileItem" search="FileItem/FileName" type="mir" />
+        <Content type="string">ws_18.dll</Content>
+      </IndicatorItem>
+      <IndicatorItem id="530bc8b5-1d73-44b5-80d5-994a4b4c96c2" condition="is">
+        <Context document="ServiceItem" search="ServiceItem/name" type="mir" />
+        <Content type="string">las</Content>
+      </IndicatorItem>
+      <IndicatorItem id="96df9dc7-4c6a-45d4-9b7c-af77f931bb4b" condition="contains">
+        <Context document="ProcessItem" search="ProcessItem/HandleList/Handle/Name" type="mir" />
+        <Content type="string">shelldc</Content>
+      </IndicatorItem>
+      <IndicatorItem id="be09f397-2d15-4660-9570-33c955910b2e" condition="contains">
+        <Context document="ProcessItem" search="ProcessItem/HandleList/Handle/Name" type="mir" />
+        <Content type="string">NT1630</Content>
+      </IndicatorItem>
+      <IndicatorItem id="382ec1f6-f85b-4cf7-96fd-49d7a013cb2a" condition="contains">
+        <Context document="ProcessItem" search="ProcessItem/HandleList/Handle/Name" type="mir" />
+        <Content type="string">shellsa</Content>
+      </IndicatorItem>
+      <IndicatorItem id="df4b07e6-b3ab-4a56-97aa-a0669f84b69f" condition="contains">
+        <Context document="FileItem" search="FileItem/FileName" type="mir" />
+        <Content type="string">ws_data.dll</Content>
+      </IndicatorItem>
+      <IndicatorItem id="d3526ff5-fd0a-40a2-b2ed-a23c0e3fd04d" condition="is">
+        <Context document="ServiceItem" search="ServiceItem/name" type="mir" />
+        <Content type="string">ASP.NET Service</Content>
+      </IndicatorItem>
+      <IndicatorItem id="289b7e03-6a1c-4dda-b8de-e89898fac4a5" condition="is">
+        <Context document="ServiceItem" search="ServiceItem/name" type="mir" />
+        <Content type="string">ASP.NET Services</Content>
+      </IndicatorItem>
+      <IndicatorItem id="157a9f5e-3c14-4626-a77e-8e05b24bf4b3" condition="is">
+        <Context document="ServiceItem" search="ServiceItem/description" type="mir" />
+        <Content type="string">Enables Help and Support Center to run Officescan on this computer </Content>
+      </IndicatorItem>
+      <IndicatorItem id="885b891f-0652-43cf-9057-92009f574414" condition="is">
+        <Context document="ServiceItem" search="ServiceItem/description" type="mir" />
+        <Content type="string">Provides network installation services such as Assign, Publish, and Remove</Content>
+      </IndicatorItem>
+      <IndicatorItem id="0dbb40cb-a076-4651-bdbe-9ecdedb7457f" condition="contains">
+        <Context document="FileItem" search="FileItem/FullPath" type="mir" />
+        <Content type="string">WINDOWS\Temp\svchost.exe</Content>
+      </IndicatorItem>
+      <IndicatorItem id="c15cf7f0-3f42-4184-9691-e2bf082697ce" condition="contains">
+        <Context document="FileItem" search="FileItem/FullPath" type="mir" />
+        <Content type="string">WINNT\Temp\svchost.exe</Content>
+      </IndicatorItem>
+      <Indicator operator="AND" id="ede8605e-c316-4277-9791-81e8db97b137">
+        <IndicatorItem id="d76c6e47-5cd1-41dc-be31-ea0416c66bcf" condition="is">
+          <Context document="FileItem" search="FileItem/PEInfo/Exports/NumberOfFunctions" type="mir" />
+          <Content type="int">1</Content>
+        </IndicatorItem>
+        <IndicatorItem id="1c9e152f-ac39-4027-9be3-ba7fe87ff816" condition="is">
+          <Context document="FileItem" search="FileItem/PEInfo/Exports/ExportedFunctions/string" type="mir" />
+          <Content type="string">ServiceMain</Content>
+        </IndicatorItem>
+        <IndicatorItem id="fb11ce8c-9831-43f8-b1ab-b4617558f2df" condition="is">
+          <Context document="FileItem" search="FileItem/PEInfo/ImportedModules/Module/ImportedFunctions/string" type="mir" />
+          <Content type="string">BitBlt</Content>
+        </IndicatorItem>
+        <IndicatorItem id="de9a8247-5153-42a1-9cb3-76a22921880f" condition="is">
+          <Context document="FileItem" search="FileItem/PEInfo/ImportedModules/Module/ImportedFunctions/string" type="mir" />
+          <Content type="string">GetDlBits</Content>
+        </IndicatorItem>
+      </Indicator>
+      <Indicator operator="AND" id="20a9ad4e-4f38-4127-8cfd-f4bd5216f715">
+        <IndicatorItem id="1fc55f55-8278-4196-85b5-0ef20580d7f9" condition="is">
+          <Context document="ServiceItem" search="ServiceItem/name" type="mir" />
+          <Content type="string">Iprip</Content>
+        </IndicatorItem>
+        <IndicatorItem id="8e150f4f-9b0a-4dc3-8beb-c05c44e603a3" condition="is">
+          <Context document="ServiceItem" search="ServiceItem/descriptiveName" type="mir" />
+          <Content type="string">Network Management</Content>
+        </IndicatorItem>
+      </Indicator>
+      <Indicator operator="AND" id="ad0924ee-b372-443d-996f-c3ee0f4e7146">
+        <IndicatorItem id="941c259a-2834-4b50-9c4d-ee73ed67f6be" condition="is">
+          <Context document="ServiceItem" search="ServiceItem/name" type="mir" />
+          <Content type="string">6to4</Content>
+        </IndicatorItem>
+        <IndicatorItem id="aa84b16c-3e80-4443-a7a3-aa2f2ce54382" condition="is">
+          <Context document="ServiceItem" search="ServiceItem/descriptiveName" type="mir" />
+          <Content type="string">OfficeScan</Content>
+        </IndicatorItem>
+      </Indicator>
+      <Indicator operator="AND" id="8d38cfbd-f0b1-4895-89aa-5ad7aa22dd0f">
+        <IndicatorItem id="9d626baf-a7ff-4dab-bc39-d27adb12c6fc" condition="is">
+          <Context document="FileItem" search="FileItem/SizeInBytes" type="mir" />
+          <Content type="int">21297</Content>
+        </IndicatorItem>
+        <IndicatorItem id="6291cf76-883d-40c5-87b5-f752818bbabb" condition="is">
+          <Context document="FileItem" search="FileItem/PEInfo/PETimeStamp" type="mir" />
+          <Content type="date">2010-03-17T00:40:45Z</Content>
+        </IndicatorItem>
+      </Indicator>
+      <Indicator operator="AND" id="dcb5d947-f311-42f7-a523-358926a93fb9">
+        <IndicatorItem id="f44fe344-9822-41e9-9372-dff8ca0a654c" condition="is">
+          <Context document="FileItem" search="FileItem/SizeInBytes" type="mir" />
+          <Content type="int">20753</Content>
+        </IndicatorItem>
+        <IndicatorItem id="8b25fc37-3afb-4685-8e79-04b7dffd4e6c" condition="is">
+          <Context document="FileItem" search="FileItem/PEInfo/PETimeStamp" type="mir" />
+          <Content type="date">2010-03-09T08:21:42Z</Content>
+        </IndicatorItem>
+      </Indicator>
+      <Indicator operator="AND" id="462290aa-3316-4066-98ac-09f00d9e5a6b">
+        <IndicatorItem id="27fa9b65-31c3-45c6-a29a-388a270f4a72" condition="contains">
+          <Context document="FileItem" search="FileItem/FileName" type="mir" />
+          <Content type="string">gzg</Content>
+        </IndicatorItem>
+        <IndicatorItem id="231b17f0-a3b8-416f-97ea-f7f7c889bb77" condition="containsnot">
+          <Context document="FileItem" search="FileItem/FileExtension" type="mir" />
+          <Content type="string">exe</Content>
+        </IndicatorItem>
+        <IndicatorItem id="b0183449-b252-4832-8427-ea7f1093a9b8" condition="containsnot">
+          <Context document="FileItem" search="FileItem/FileExtension" type="mir" />
+          <Content type="string">dll</Content>
+        </IndicatorItem>
+        <IndicatorItem id="57181152-07ed-4f11-83b1-da21b5737a25" condition="containsnot">
+          <Context document="FileItem" search="FileItem/FileExtension" type="mir" />
+          <Content type="string">sys</Content>
+        </IndicatorItem>
+        <IndicatorItem id="c60542f5-0605-4fe7-b011-ae93f7aff136" condition="containsnot">
+          <Context document="FileItem" search="FileItem/FileExtension" type="mir" />
+          <Content type="string">ini</Content>
+        </IndicatorItem>
+        <Indicator operator="OR" id="4317fe74-379a-4068-b70e-bf89a980d54d">
+          <IndicatorItem id="d555bd3f-8e60-41ee-a691-59a75d6bd78a" condition="contains">
+            <Context document="FileItem" search="FileItem/FilePath" type="mir" />
+            <Content type="string">WINDOWS\system32</Content>
+          </IndicatorItem>
+          <IndicatorItem id="ddf7fdb4-4c15-404a-b55f-8c745530573d" condition="contains">
+            <Context document="FileItem" search="FileItem/FilePath" type="mir" />
+            <Content type="string">WINNT\system32</Content>
+          </IndicatorItem>
+        </Indicator>
+      </Indicator>
+    </Indicator>
+  </definition>
+</ioc>

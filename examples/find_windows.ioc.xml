@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<ioc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" id="c32ab7b5-49c8-40cc-8a12-ef5c3ba91311" last-modified="2011-10-28T19:28:20" xmlns="http://schemas.mandiant.com/2010/ioc">
+  <short_description>FIND WINDOWS</short_description>
+  <description>This is a sample IOC that will hit on a number different artifacts present on a Windows computer. This IOC is used to test or illustrate the use of an IOC.</description>
+  <keywords />
+  <authored_by>Mandiant</authored_by>
+  <authored_date>0001-01-01T00:00:00</authored_date>
+  <links />
+  <definition>
+    <Indicator operator="OR" id="2e693207-ae90-4f9b-8a31-67f31f1d263c">
+      <IndicatorItem id="5ebfad1c-6f1a-472b-ae58-6fdfede0f4e7" condition="contains">
+        <Context document="FileItem" search="FileItem/FullPath" type="mir" />
+        <Content type="string">\kernel32.dll</Content>
+      </IndicatorItem>
+      <IndicatorItem id="5b79c908-9d4d-4536-8699-9538af1576e8" condition="is">
+        <Context document="FileItem" search="FileItem/FileName" type="mir" />
+        <Content type="string">win.ini</Content>
+      </IndicatorItem>
+      <IndicatorItem id="d1e188e1-fae6-488d-ba2f-a900abb21f14" condition="contains">
+        <Context document="FileItem" search="FileItem/FileExtension" type="mir" />
+        <Content type="string">evt</Content>
+      </IndicatorItem>
+      <IndicatorItem id="78af913e-a007-4f8a-864f-b543dd7a6d09" condition="is">
+        <Context document="ProcessItem" search="ProcessItem/name" type="mir" />
+        <Content type="string">explorer.exe</Content>
+      </IndicatorItem>
+      <IndicatorItem id="9aaa6f73-5bd5-4dbe-b36f-73ee2e74655d" condition="is">
+        <Context document="EventLogItem" search="EventLogItem/EID" type="mir" />
+        <Content type="int">6009</Content>
+      </IndicatorItem>
+      <IndicatorItem id="16db1a80-af40-45fc-9db6-484bf372213b" condition="is">
+        <Context document="UserItem" search="UserItem/Username" type="mir" />
+        <Content type="string">Administrator</Content>
+      </IndicatorItem>
+      <IndicatorItem id="9a87eb7e-2b26-40a1-a8f6-7afa7d546aeb" condition="is">
+        <Context document="ServiceItem" search="ServiceItem/name" type="mir" />
+        <Content type="string">TrkWks</Content>
+      </IndicatorItem>
+      <IndicatorItem id="0f605238-d7e1-4c5b-970c-071e50b82c22" condition="contains">
+        <Context document="RegistryItem" search="RegistryItem/Path" type="mir" />
+        <Content type="string">\DosDevices\C:</Content>
+      </IndicatorItem>
+      <IndicatorItem id="e0b70fd0-38ac-4da2-a0eb-a9a9bb90e78f" condition="is">
+        <Context document="PortItem" search="PortItem/localPort" type="mir" />
+        <Content type="string">445</Content>
+      </IndicatorItem>
+      <IndicatorItem id="faed6244-b531-46e1-9be9-baf19fc977b7" condition="is">
+        <Context document="VolumeItem" search="VolumeItem/DriveLetter" type="mir" />
+        <Content type="string">C</Content>
+      </IndicatorItem>
+      <IndicatorItem id="2e463fa6-fe0e-403c-9fa9-894bd42f8a82" condition="is">
+        <Context document="DiskItem" search="DiskItem/DiskName" type="mir" />
+        <Content type="string">\\.\PhysicalDrive0</Content>
+      </IndicatorItem>
+      <IndicatorItem id="a7fdaf04-51dc-4c7e-a1e1-d4baf40e863d" condition="is">
+        <Context document="HookItem" search="HookItem/HookedModule" type="mir" />
+        <Content type="string">disk.sys</Content>
+      </IndicatorItem>
+      <IndicatorItem id="f23f9121-9618-43c0-860b-d0f7122e23de" condition="is">
+        <Context document="DriverItem" search="DriverItem/DriverName" type="mir" />
+        <Content type="string">disk.sys</Content>
+      </IndicatorItem>
+      <Indicator operator="AND" id="990fbe29-6af6-45cb-b07e-6d13c5a30617">
+        <IndicatorItem id="de7c6347-34d8-4a16-b559-38d9f4e6aabb" condition="is">
+          <Context document="FileItem" search="FileItem/FileName" type="mir" />
+          <Content type="string">sens.dll</Content>
+        </IndicatorItem>
+        <IndicatorItem id="96b8856c-f865-4805-93ed-aa8780b87617" condition="is">
+          <Context document="FileItem" search="FileItem/PEInfo/DigitalSignature/SignatureExists" type="mir" />
+          <Content type="string">true</Content>
+        </IndicatorItem>
+      </Indicator>
+    </Indicator>
+  </definition>
+</ioc>
