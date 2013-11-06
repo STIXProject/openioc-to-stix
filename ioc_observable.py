@@ -258,6 +258,7 @@ def createDriverObj(search_string, content_string, condition):
         device_objectstruct.set_Device_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
         device_list.add_Device_Object_Struct(device_objectstruct)
         driverobj.set_Device_Object_List(device_list)
+        print 'added'
     elif search_string == "DriverItem/DeviceItem/DeviceObject":
         device_list = windriverobj.DeviceObjectListType()
         device_objectstruct = windriverobj.DeviceObjectStructType()
@@ -365,7 +366,7 @@ def createDriverObj(search_string, content_string, condition):
         driverobj.set_xsi_type('WinDriverObj:WindowsDriverObjectType')
     elif not valueset:
         driverobj = None
-    
+
     return driverobj
 
 def createEmailObj(search_string, content_string, condition):
@@ -2364,10 +2365,11 @@ def process_numerical_value(object_attribute, content_string, condition):
         normalized_string = content_string.strip('[]')
         split_string = normalized_string.split(' TO ')
         object_attribute.set_condition('InclusiveBetween')
-        object_attribute.set_valueOf_(split_string[0] + ',' + split_string[1])
-        if condition == 'Contains' or condition == 'Equals':           
+        object_attribute.set_valueOf_(split_string[0] + '##comma##' + split_string[1])
+        if condition == 'Contains' or condition == 'Equals':         
             object_attribute.set_apply_condition('ANY')
         elif condition == 'DoesNotContain' or condition == 'DoesNotEqual':
+            print 'inside'
             object_attribute.set_apply_condition('NONE')
     else:
         object_attribute.set_condition(condition)
@@ -2386,4 +2388,4 @@ def process_string_value(content_string):
     ):
         return ('<![CDATA[' + content_string + ']]>')
     else:
-        return content_string.replace(',','&#44;')
+        return content_string
