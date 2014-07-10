@@ -2,7 +2,7 @@
 
       OpenIOC XML -> STIX XML Converter Script
 
- Copyright (c) 2013 - The MITRE Corporation
+ Copyright (c) 2014 - The MITRE Corporation
  All rights reserved. See LICENSE.txt for more details.
 
 *****************************************************************
@@ -11,11 +11,12 @@ BY USING THE OPENIOC TO STIX SCRIPT, YOU SIGNIFY YOUR ACCEPTANCE OF THE TERMS AN
 CONDITIONS OF USE.  IF YOU DO NOT AGREE TO THESE TERMS, DO NOT USE THIS SCRIPT.
 
 #################################################################
-#Generates STIX Indicator Output from an OpenIOC XML File       #
-#Compatible with STIX v1.0.1 and CybOX v2.0.1                   #
+#Generates STIX Indicator Output from an OpenIOC v1.0 XML File  #
+# Compatible with OpenIOC v1.0                                  #
+# Compatible with STIX v1.1.1 and CybOX v2.1.1                  #
 #                                                               #
-#v0.11 - BETA                                                    #
-#10/30/2013                                                     #
+#v0.12 - BETA                                                   #
+#7/10/2014                                                      #
 #################################################################
 # STIX - http://cybox.mitre.org                                 #
 # CybOX - http://cybox.mitre.org                                #
@@ -25,8 +26,8 @@ CONDITIONS OF USE.  IF YOU DO NOT AGREE TO THESE TERMS, DO NOT USE THIS SCRIPT.
 --Installation Notes------------------------------------------------------------
 
 Extract included files into your directory of choice. This script is dependent on the following libraries:
-* python-stix v1.0.1.x
-* python-cybox v2.0.1.x
+* python-stix v1.1.1.x
+* python-cybox v2.1.x
 
 Install dependencies with pip:
 $ pip install stix 
