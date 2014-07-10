@@ -1,9 +1,9 @@
-# Copyright (c) 2013, The MITRE Corporation. All rights reserved.
+# Copyright (c) 2014, The MITRE Corporation. All rights reserved.
 # See LICENSE.txt for complete terms.
 
 #OpenIOC -> CybOX Translator
-#v0.21 BETA
-#Creates CybOX 2.0.1 objects from IOC indicator item components 
+#v0.24 BETA
+#Creates CybOX 2.1 objects from IOC indicator item components 
 import uuid
 import cybox.bindings.cybox_core as core
 import cybox.bindings.cybox_common as common
@@ -258,7 +258,6 @@ def createDriverObj(search_string, content_string, condition):
         device_objectstruct.set_Device_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
         device_list.add_Device_Object_Struct(device_objectstruct)
         driverobj.set_Device_Object_List(device_list)
-        print 'added'
     elif search_string == "DriverItem/DeviceItem/DeviceObject":
         device_list = windriverobj.DeviceObjectListType()
         device_objectstruct = windriverobj.DeviceObjectStructType()
