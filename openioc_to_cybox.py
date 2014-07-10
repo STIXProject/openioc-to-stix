@@ -1,13 +1,14 @@
-# Copyright (c) 2013, The MITRE Corporation. All rights reserved.
+# Copyright (c) 2014, The MITRE Corporation. All rights reserved.
 # See LICENSE.txt for complete terms.
 
 #OpenIOC to CybOX Translator
-#v0.21 BETA
-#Generates valid CybOX v2.0.1 XML output from OpenIOCs
+#v0.22 BETA
+#Generates valid CybOX v2.1 XML output from OpenIOCs
 import openioc
+from cybox.core import Observables
+from cybox.utils import Namespace
 import cybox.bindings.cybox_core as cybox_binding
 import cybox.bindings.cybox_common as cybox_common_binding
-from cybox.utils import NamespaceParser
 import ioc_observable
 import sys
 import os
@@ -184,7 +185,7 @@ def generate_cybox(indicators, infilename, embed_observables):
         observable_source_description = cybox_common_binding.StructuredTextType()
         observable_source_description.set_valueOf_('OpenIOC File: ' + os.path.basename(infilename))
         observable_source.set_Description(observable_source_description)
-        indicator_observable.set_Observable_Source(observable_source)
+        indicator_observable.set_Observable_Source([observable_source])
 
         composition = cybox_binding.ObservableCompositionType(operator=indicator.get_operator())
         #Process the indicator, including any embedded indicators
@@ -215,7 +216,7 @@ def usage():
     
 USAGE_TEXT = """
 OpenIOC --> CybOX XML Converter Utility
-v0.21 BETA // Compatible with CybOX v2.0.1
+v0.22 BETA // Compatible with CybOX v2.1
 
 Usage: python openioc_to_cybox.py <flags> -i <openioc xml file> -o <cybox xml file>
 
@@ -268,9 +269,10 @@ def main():
                 
                 outfile = open(outfilename, 'w')
                 outfile.write('<?xml version="1.0" encoding="utf-8"?>\n')
-                nsparser = NamespaceParser(observables.get_Observable())
-                ns_string = '\n xmlns:openioc="http://openioc.org/"' + nsparser.build_namespaces_schemalocations_str()
-                observables.export(outfile, 0, namespacedef_=ns_string)
+                observables_api_obj = Observables.from_obj(observables)
+                outfile.write(observables_api_obj.to_xml(True, namespace_dict = {'http://openioc.org/':'openioc'}))
+                outfile.flush()
+                outfile.close()
 
                 if verbose_mode:
                     for indicator in skipped_indicators:
