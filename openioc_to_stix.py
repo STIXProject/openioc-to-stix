@@ -1,6 +1,9 @@
+# Copyright (c) 2014, The MITRE Corporation. All rights reserved.
+# See LICENSE.txt for complete terms.
+
 # OpenIOC to STIX Script
 # Wraps output of OpenIOC to CybOX Script
-# v0.11
+# v0.12
 
 import sys
 import os
@@ -11,11 +14,11 @@ from cybox.core import Observables
 from stix.indicator import Indicator
 from stix.core import STIXPackage, STIXHeader
 
-__VERSION__ = 0.11
+__VERSION__ = 0.12
 
 USAGE_TEXT = """
 OpenIOC --> STIX Translator
-v0.11 BETA // Compatible with STIX v1.0.1 and CybOX v2.0.1
+v0.12 BETA // Compatible with STIX v1.1.1 and CybOX v2.1
 
 Outputs a STIX Package with one or more STIX Indicators containing 
 CybOX Observables translated from an input OpenIOC XML file. 
@@ -72,7 +75,7 @@ def main():
 
             # Write the generated STIX Package as XML to the output file
             outfile = open(outfilename, 'w')
-            outfile.write(stix_package.to_xml())
+            outfile.write(stix_package.to_xml(ns_dict = {'http://openioc.org/':'openioc'}))
             outfile.flush()
             outfile.close()
         except Exception, err:
