@@ -445,6 +445,7 @@ def createEmailObj(search_string, content_string, condition):
     elif search_string == "Email/From":
         email_header = emailmessageobj.EmailHeaderType()
         email_from = addressobj.AddressObjectType()
+        email_from.set_category("e-mail")
         email_from.set_Address_Value(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
         email_header.set_From(email_from)
         emailobj.set_Header(email_header)
@@ -490,6 +491,7 @@ def createEmailObj(search_string, content_string, condition):
         email_header = emailmessageobj.EmailHeaderType()
         email_recipients = emailmessageobj.EmailRecipientsType()
         email_to = addressobj.AddressObjectType()
+        email_to.set_category("e-mail")
         email_to.set_Address_Value(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
         email_recipients.add_Recipient(email_to)
         email_header.set_To(email_recipients)
