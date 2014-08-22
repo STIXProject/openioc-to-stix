@@ -777,6 +777,18 @@ def createNetConnectionObj(search_string, content_string, condition):
         address.set_Address_Value(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
         socketaddr.set_IP_Address(address)
         netconn.set_Source_Socket_Address(socketaddr)
+    elif search_string == "PortItem/localPort":
+        socketaddr = socketaddressobj.SocketAddressObjectType()
+        portobject = portobj.PortObjectType()
+        portobject.set_Port_Value(process_numerical_value(common.PositiveIntegerObjectPropertyType(datatype=None), content_string, condition))
+        socketaddr.set_Port(portobject)
+        netconn.set_Source_Socket_Address(socketaddr)
+    elif search_string == "PortItem/remotePort":
+        socketaddr = socketaddressobj.SocketAddressObjectType()
+        portobject = portobj.PortObjectType()
+        portobject.set_Port_Value(process_numerical_value(common.PositiveIntegerObjectPropertyType(datatype=None), content_string, condition))
+        socketaddr.set_Port(portobject)
+        netconn.set_Destination_Socket_Address(socketaddr)
     elif search_string == "PortItem/remoteIP" or search_string == "ProcessItem/PortList/PortItem/remoteIP":
         socketaddr = socketaddressobj.SocketAddressObjectType()
         address = addressobj.AddressObjectType() 
@@ -916,7 +928,7 @@ def createPortObj(search_string, content_string, condition):
     elif search_string == "PortItem/localIP":
         return createNetConnectionObj(search_string, content_string, condition)
     elif search_string == "PortItem/localPort" or search_string == "PortItem/remotePort":
-        portobject.set_Port_Value(process_numerical_value(common.PositiveIntegerObjectPropertyType(datatype=None), content_string, condition))
+        return createNetConnectionObj(search_string, content_string, condition)
     elif search_string == "PortItem/path":
         valueset = False
     elif search_string == "PortItem/pid":
