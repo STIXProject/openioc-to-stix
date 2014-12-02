@@ -3,22 +3,24 @@
 
 # OpenIOC to STIX Script
 # Wraps output of OpenIOC to CybOX Script
-# v0.12
+# v0.13
 
 import sys
 import os
 import traceback
+import warnings
 import openioc #OpenIOC Bindings
 import openioc_to_cybox #OpenIOC to CybOX Script
 from cybox.core import Observables
+import stix.utils
 from stix.indicator import Indicator
 from stix.core import STIXPackage, STIXHeader
 
-__VERSION__ = 0.12
+__VERSION__ = 0.13
 
 USAGE_TEXT = """
 OpenIOC --> STIX Translator
-v0.12 BETA // Compatible with STIX v1.1.1 and CybOX v2.1
+v0.13 BETA // Compatible with STIX v1.1.1 and CybOX v2.1
 
 Outputs a STIX Package with one or more STIX Indicators containing 
 CybOX Observables translated from an input OpenIOC XML file. 
@@ -54,8 +56,14 @@ def main():
             observables_obj = openioc_to_cybox.generate_cybox(openioc_indicators, infilename, True)
             observables_cls = Observables.from_obj(observables_obj)
 
+            # Set the namespace to be used in the STIX Package
+            stix.utils.set_id_namespace({"https://github.com/STIXProject/openioc-to-stix":"openiocToSTIX"})
+
             # Wrap the created Observables in a STIX Package/Indicator
             stix_package = STIXPackage()
+            # Add the OpenIOC namespace
+            input_namespaces = {"http://openioc.org/":"openioc"}
+            stix_package.__input_namespaces__ = input_namespaces
 
             for observable in observables_cls.observables:
                 indicator_dict = {}
@@ -75,7 +83,11 @@ def main():
 
             # Write the generated STIX Package as XML to the output file
             outfile = open(outfilename, 'w')
-            outfile.write(stix_package.to_xml(ns_dict = {'http://openioc.org/':'openioc'}))
+            # Ignore any warnings - temporary fix for no schemaLocation w/ namespace
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                outfile.write(stix_package.to_xml())
+                warnings.resetwarnings()
             outfile.flush()
             outfile.close()
         except Exception, err:
