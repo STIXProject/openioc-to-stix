@@ -15,8 +15,8 @@ CONDITIONS OF USE.  IF YOU DO NOT AGREE TO THESE TERMS, DO NOT USE THIS SCRIPT.
 # Compatible with OpenIOC v1.0                                  #
 # Compatible with STIX v1.1.1 and CybOX v2.1.1                  #
 #                                                               #
-#v0.12 - BETA                                                   #
-#7/10/2014                                                      #
+#v0.13 - BETA                                                   #
+#12/02/2014                                                     #
 #################################################################
 # STIX - http://cybox.mitre.org                                 #
 # CybOX - http://cybox.mitre.org                                #
@@ -26,8 +26,8 @@ CONDITIONS OF USE.  IF YOU DO NOT AGREE TO THESE TERMS, DO NOT USE THIS SCRIPT.
 --Installation Notes------------------------------------------------------------
 
 Extract included files into your directory of choice. This script is dependent on the following libraries:
-* python-stix v1.1.1.x
-* python-cybox v2.1.x
+* python-stix >= v1.1.1.2 and <= v1.2.0.0
+* python-cybox >= v2.1.0.8 and <= v2.2.0.0
 
 Install dependencies with pip:
 $ pip install stix 
