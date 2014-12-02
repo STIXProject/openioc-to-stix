@@ -2,7 +2,7 @@
 # See LICENSE.txt for complete terms.
 
 #OpenIOC -> CybOX Translator
-#v0.24 BETA
+#v0.25 BETA
 #Creates CybOX 2.1 objects from IOC indicator item components 
 import uuid
 import cybox.bindings.cybox_core as core
@@ -13,6 +13,7 @@ import cybox.bindings.address_object as addressobj
 import cybox.bindings.disk_object as diskobj
 import cybox.bindings.disk_partition_object as diskpartitionobj
 import cybox.bindings.dns_record_object as dnsrecordobj
+import cybox.bindings.dns_cache_object as dnscacheobj
 import cybox.bindings.email_message_object as emailmessageobj
 import cybox.bindings.file_object as fileobj
 import cybox.bindings.http_session_object as httpsessionobj
@@ -169,37 +170,43 @@ def createDiskObj(search_string, content_string, condition):
     return dskobj
 
 def createDNSObj(search_string, content_string, condition):
-    #Create the dns cache object
-    dnsobj = dnsrecordobj.DNSRecordObjectType()
+    # Create the DNS Record Object
+    dnsrecobj = dnsrecordobj.DNSRecordObjectType()
 
     #Assume the IOC indicator value can be mapped to a CybOx type
     valueset = True
 
     if search_string == "DnsEntryItem/DataLength":
-        dnsobj.set_Data_Length(process_numerical_value(common.IntegerObjectPropertyType(datatype=None), content_string, condition))
+        dnsrecobj.set_Data_Length(process_numerical_value(common.IntegerObjectPropertyType(datatype=None), content_string, condition))
     elif search_string == "DnsEntryItem/Flags":
-        dnsobj.set_Flags(process_numerical_value(common.HexBinaryObjectPropertyType(datatype=None), content_string, condition))
+        dnsrecobj.set_Flags(process_numerical_value(common.HexBinaryObjectPropertyType(datatype=None), content_string, condition))
     elif search_string == "DnsEntryItem/Host":
         uri = uriobj.URIObjectType()
         uri.set_Value(common.AnyURIObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-        dnsobj.set_Domain_Name(uri)
+        dnsrecobj.set_Domain_Name(uri)
     elif search_string == "RecordData/Host": 
-        dnsobj.set_Record_Data(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
-    elif search_string == "RecordData/IPv4Address": 
-        dnsobj.set_Record_Data(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
+        dnsrecobj.set_Record_Data(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
+    elif search_string == "RecordData/IPv4Address":
+        address = addressobj.AddressObjectType(category="ipv4-addr")
+        address.set_Address_Value(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
+        dnsrecobj.set_Record_Data(address)
     elif search_string == "DnsEntryItem/RecordName":
-        dnsobj.set_Record_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
+        dnsrecobj.set_Record_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
     elif search_string == "DnsEntryItem/RecordType":
-        dnsobj.set_Record_Type(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
+        dnsrecobj.set_Record_Type(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=process_string_value(content_string)))
     elif search_string == "DnsEntryItem/TimeToLive":
-        dnsobj.set_TTL(process_numerical_value(common.IntegerObjectPropertyType(datatype=None), content_string, condition))
+        dnsrecobj.set_TTL(process_numerical_value(common.IntegerObjectPropertyType(datatype=None), content_string, condition))
 
-    if valueset and dnsobj.hasContent_():
-        dnsobj.set_xsi_type('DNSCacheObj:DNSCacheObjectType')
+    if valueset and dnsrecobj.hasContent_():
+        # Create the DNS Cache Object
+        dnscacobj = dnscacheobj.DNSCacheObjectType()
+        dnscacentry = dnscacheobj.DNSCacheEntryType(DNS_Entry=dnsrecobj)
+        dnscacobj.add_DNS_Cache_Entry(dnscacentry)
+        dnscacobj.set_xsi_type("DNSCacheObj:DNSCacheObjectType")
     elif not valueset:
-        dnsobj = None
+        dnscacobj = None
 
-    return dnsobj
+    return dnscacobj
 
 def createDriverObj(search_string, content_string, condition):
     #Create the driver object
