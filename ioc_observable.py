@@ -2389,7 +2389,6 @@ def process_numerical_value(object_attribute, content_string, condition):
         if condition == 'Contains' or condition == 'Equals':         
             object_attribute.set_apply_condition('ANY')
         elif condition == 'DoesNotContain' or condition == 'DoesNotEqual':
-            print 'inside'
             object_attribute.set_apply_condition('NONE')
     else:
         object_attribute.set_condition(condition)
