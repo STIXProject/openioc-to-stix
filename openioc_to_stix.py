@@ -1,4 +1,6 @@
-# Copyright (c) 2014, The MITRE Corporation. All rights reserved.
+#/usr/bin/env python
+
+# Copyright (c) 2015, The MITRE Corporation. All rights reserved.
 # See LICENSE.txt for complete terms.
 
 # OpenIOC to STIX Script
