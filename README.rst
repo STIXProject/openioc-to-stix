@@ -1,4 +1,4 @@
-OpenIOC to STIX
+openioc-to-stix
 ===============
 
 Generates STIX Indicator Output from an OpenIOC v1.0 XML File.
