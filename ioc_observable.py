@@ -1,13 +1,15 @@
 # Copyright (c) 2015, The MITRE Corporation. All rights reserved.
 # See LICENSE.txt for complete terms.
 
-#OpenIOC -> CybOX Translator
-#v0.25 BETA
-#Creates CybOX 2.1 objects from IOC indicator item components 
+# builtin
 import uuid
+
+# external utilities
+from cybox import utils
+
+# external cybox bindings
 import cybox.bindings.cybox_core as core
 import cybox.bindings.cybox_common as common
-
 import cybox.bindings.account_object as accountobj
 import cybox.bindings.address_object as addressobj
 import cybox.bindings.disk_object as diskobj
@@ -45,6 +47,7 @@ import cybox.bindings.win_system_restore_object as winsystemrestoreobj
 import cybox.bindings.win_task_object as wintaskobj
 import cybox.bindings.win_user_account_object as winuseraccountobj
 import cybox.bindings.win_volume_object as winvolumeobj
+
 
 def createObj(search_string, content_string, condition):
     defined_object = None
@@ -2398,13 +2401,9 @@ def process_numerical_value(object_attribute, content_string, condition):
 #Encase any strings with XML escape characters in the proper tags
 
 def process_string_value(content_string):
-    if (
-    content_string.count('<') > 0 or
-    content_string.count('>') > 0 or
-    content_string.count("'") > 0 or
-    content_string.count('"') > 0 or
-    content_string.count('&') > 0 
-    ):
-        return ('<![CDATA[' + content_string + ']]>')
+    chars = ('<', '>', "'", '"', '&')
+
+    if any(c in content_string for c in chars):
+        return utils.wrap_cdata(content_string)
     else:
         return content_string

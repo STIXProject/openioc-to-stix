@@ -10,10 +10,6 @@ Wraps output of OpenIOC to CybOX Script
 import sys
 import argparse
 
-# openioc bindings and utilities
-import openioc
-import openioc_to_cybox
-
 # python-stix
 from stix import utils
 from stix.indicator import Indicator
@@ -25,24 +21,12 @@ from stix.common.vocabs import PackageIntent
 from cybox.core import Observables
 from cybox.common import ToolInformationList, ToolInformation
 
+# openioc bindings and utilities
+import openioc
+import openioc_to_cybox
 
-__version__ = "0.13"
 
-
-USAGE_TEXT = \
-"""
-OpenIOC --> STIX Translator
-v%s // Compatible with STIX v1.2 and CybOX v2.1
-
-Outputs a STIX Package with one or more STIX Indicators containing 
-CybOX Observables translated from an input OpenIOC XML file. 
-
-Usage: python openioc_to_stix.py -i <openioc xml file> -o <stix xml file>
-"""
-
-def usage():
-    print USAGE_TEXT
-    sys.exit(1)
+__version__ = "0.2"
 
 
 def get_arg_parser():
