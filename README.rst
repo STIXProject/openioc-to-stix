@@ -57,12 +57,14 @@ Usage
 There are two main command line parameters for this script:
 
 ::
+
     -i: the path to the input OpenIOC XML file
     -o: the path to the output STIX XML file
 
 To use the script, run the following command:
 
 ::
+
     $ python openioc_to_stix.py -i <OpenIOC XML file> -o <STIX XML file>
 
 Unsupported indicator items or those that error out during translation will be 
