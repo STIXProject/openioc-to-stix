@@ -37,20 +37,6 @@ Install dependencies with pip:
 with other Python versions.
 
 
-Package Contents
-----------------
-
-* ``README``: this file.
-* ``openioc_to_stix.py``: OpenIOC XML to STIX XML Python script.
-* ``openioc_to_cybox.py``: OpenIOC XML to CybOX XML Python converter script
-  which this script wraps.
-* ``ioc_observable.py``: Helper methods for the script.
-* ``openioc.py``: OpenIOC Python bindings created for the OpenIOC to CybOX
-  script which the script imports.
-* ``LICENSE.txt``: Terms of use for this script.
-* ``examples/*.xml``: Sample input and output XML files.
-
-
 Usage
 -----
 
@@ -67,10 +53,24 @@ To use the script, run the following command:
 
     $ python openioc_to_stix.py -i <OpenIOC XML file> -o <STIX XML file>
 
-Unsupported indicator items or those that error out during translation will be 
+Unsupported indicator items or those that error out during translation will be
 translated into an empty Observable with a description of the error in order
-to retain structural consistency between the input OpenIOC document and 
+to retain structural consistency between the input OpenIOC document and
 output STIX document.
+
+
+Package Contents
+----------------
+
+* ``README``: this file.
+* ``openioc_to_stix.py``: OpenIOC XML to STIX XML Python script.
+* ``openioc_to_cybox.py``: OpenIOC XML to CybOX XML Python converter script
+  which this script wraps.
+* ``ioc_observable.py``: Helper methods for the script.
+* ``openioc.py``: OpenIOC Python bindings created for the OpenIOC to CybOX
+  script which the script imports.
+* ``LICENSE.txt``: Terms of use for this script.
+* ``examples/*.xml``: Sample input and output XML files.
 
 
 TERMS
