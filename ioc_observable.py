@@ -104,7 +104,7 @@ def create_object(search_string, content_string, condition):
     return retval
 
 
-def set_field(obj, attrname, value, condition='Equals'):
+def set_field(obj, attrname, value, condition=None):
     # Set the attribute value
     attr = getattr(obj, attrname)
 
@@ -112,6 +112,9 @@ def set_field(obj, attrname, value, condition='Equals'):
         attr(value)
     else:
         setattr(obj, attrname, sanitize(value))
+
+    if not condition:
+        return
 
     # Set the condition
     attr = getattr(obj, attrname)
@@ -453,117 +456,67 @@ def create_library_obj(search_string, content_string, condition):
     return library
 
 def createNetConnectionObj(search_string, content_string, condition):
-    #Create the network connection object
-    netconn = networkconnectionobj.NetworkConnectionObjectType()
+    from cybox.objects.socket_address_object import SocketAddress
+    from cybox.objects.network_connection_object import (
+        NetworkConnection, Layer7Connections
+    )
+    from cybox.objects.http_session_object import (
+        HTTPSession, HTTPClientRequest, HTTPRequestResponse, HTTPRequestHeader,
+        HTTPRequestHeaderFields, HostField, HTTPRequestLine
+    )
 
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
+    # HTTP Session stuff
+    session = HTTPSession()
+    request_response = HTTPRequestResponse()
+    request = HTTPClientRequest()
+    request_line = HTTPRequestLine()
+    header = HTTPRequestHeader()
+    header_fields = HTTPRequestHeaderFields()
 
-    if search_string == "PortItem/localIP" or search_string == "ProcessItem/PortList/PortItem/localIP":
-        socketaddr = socketaddressobj.SocketAddressObjectType()
-        address = addressobj.AddressObjectType() 
-        address.set_Address_Value(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        socketaddr.set_IP_Address(address)
-        netconn.set_Source_Socket_Address(socketaddr)
-    elif search_string == "PortItem/localPort":
-        socketaddr = socketaddressobj.SocketAddressObjectType()
-        portobject = portobj.PortObjectType()
-        portobject.set_Port_Value(process_numerical_value(common.PositiveIntegerObjectPropertyType(datatype=None), content_string, condition))
-        socketaddr.set_Port(portobject)
-        netconn.set_Source_Socket_Address(socketaddr)
-    elif search_string == "PortItem/remotePort":
-        socketaddr = socketaddressobj.SocketAddressObjectType()
-        portobject = portobj.PortObjectType()
-        portobject.set_Port_Value(process_numerical_value(common.PositiveIntegerObjectPropertyType(datatype=None), content_string, condition))
-        socketaddr.set_Port(portobject)
-        netconn.set_Destination_Socket_Address(socketaddr)
-    elif search_string == "PortItem/remoteIP" or search_string == "ProcessItem/PortList/PortItem/remoteIP":
-        socketaddr = socketaddressobj.SocketAddressObjectType()
-        address = addressobj.AddressObjectType() 
-        address.set_Address_Value(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        socketaddr.set_IP_Address(address)
-        netconn.set_Destination_Socket_Address(socketaddr)
-    elif search_string == "Network/DNS" or search_string == "PortItem/remotePort":
-        l7conn = networkconnectionobj.Layer7ConnectionsType()
-        httpsession = httpsessionobj.HTTPSessionObjectType()
-        httpreqrep = httpsessionobj.HTTPRequestResponseType()
-        httpreq = httpsessionobj.HTTPClientRequestType()
-        httphdr = httpsessionobj.HTTPRequestHeaderType()
-        httphdrfields = httpsessionobj.HTTPRequestHeaderFieldsType()
-        httphost = httpsessionobj.HostFieldType()
-        hosturi = uriobj.URIObjectType()
-        hosturi.set_Value(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        httphost.set_Domain_Name(hosturi)
-        httphdrfields.set_Host(httphost)
-        httphdr.set_Parsed_Header(httphdrfields)
-        httpreq.set_HTTP_Request_Header(httphdr)
-        httpreqrep.set_HTTP_Client_Request(httpreq)
-        httpsession.add_HTTP_Request_Response(httpreqrep)
-        l7conn.set_HTTP_Session(httpsession)
-        netconn.set_Layer7_Connections(l7conn)
-    elif search_string == "Network/HTTP_Referr":
-        l7conn = networkconnectionobj.Layer7ConnectionsType()
-        httpsession = httpsessionobj.HTTPSessionObjectType()
-        httpreqrep = httpsessionobj.HTTPRequestResponseType()
-        httpreq = httpsessionobj.HTTPClientRequestType()
-        httphdr = httpsessionobj.HTTPRequestHeaderType()
-        httphdrfields = httpsessionobj.HTTPRequestHeaderFieldsType()
-        refuri = uriobj.URIObjectType()
-        refuri.set_Value(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        httphdrfields.set_Referer(refuri)
-        httphdr.set_Parsed_Header(httphdrfields)
-        httpreq.set_HTTP_Request_Header(httphdr)
-        httpreqrep.set_HTTP_Client_Request(httpreq)
-        httpsession.add_HTTP_Request_Response(httpreqrep)
-        l7conn.set_HTTP_Session(httpsession)
-        netconn.set_Layer7_Connections(l7conn)
+    # Network Connection stuff
+    layer7 = Layer7Connections()
+    socketaddr = SocketAddress()
+    net = NetworkConnection()
+
+    # Pre-wire common HTTP Session properties
+    layer7.http_session = session
+    session.http_request_response = request_response
+    request_response.http_client_request = request
+    request.http_request_header = header
+
+    socket_attrmap = {
+        "PortItem/localIP": ("ip_address", "source_socket_address"),
+        "ProcessItem/PortList/PortItem/localIP": ("ip_address", "source_socket_address"),
+        "PortItem/localPort": ("port", "source_port"),
+        "PortItem/remotePort": ("port", "destination_port")
+    }
+
+    if search_string in socket_attrmap:
+        socket_field, net_field = socket_attrmap[search_string]
+        set_field(socketaddr, socket_field, content_string, condition)
+        set_field(net, net_field, socketaddr, condition)
+    elif search_string == "Network/DNS":
+        host = HostField()
+        header_fields.host = host
+        header.parsed_header = header_fields
+        set_field(host, "domain", content_string, condition)
+    elif search_string == "Network/HTTP_Referer":
+        header.parsed_header = header_fields
+        set_field(header_fields, "referer", content_string, condition)
     elif search_string == "Network/String":
-        l7conn = networkconnectionobj.Layer7ConnectionsType()
-        httpsession = httpsessionobj.HTTPSessionObjectType()
-        httpreqrep = httpsessionobj.HTTPRequestResponseType()
-        httpreq = httpsessionobj.HTTPClientRequestType()
-        httphdr = httpsessionobj.HTTPRequestHeaderType()
-        httphdr.set_Raw_Header(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        httpreq.set_HTTP_Request_Header(httphdr)
-        httpreqrep.set_HTTP_Client_Request(httpreq)
-        httpsession.add_HTTP_Request_Response(httpreqrep)
-        l7conn.set_HTTP_Session(httpsession)
-        netconn.set_Layer7_Connections(l7conn)
+        set_field(header, "raw_header", content_string, condition)
     elif search_string == "Network/URI":
-        l7conn = networkconnectionobj.Layer7ConnectionsType()
-        httpsession = httpsessionobj.HTTPSessionObjectType()
-        httpreqrep = httpsessionobj.HTTPRequestResponseType()
-        httpreq = httpsessionobj.HTTPClientRequestType()
-        reqline = httpsessionobj.HTTPRequestLineType()
-        reqline.set_Value(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        httpreq.set_HTTP_Request_Line(reqline)
-        httpreqrep.set_HTTP_Client_Request(httpreq)
-        httpsession.add_HTTP_Request_Response(httpreqrep)
-        l7conn.set_HTTP_Session(httpsession)
-        netconn.set_Layer7_Connections(l7conn)
+        set_field(request_line, "value", content_string, condition)
+        request.http_request_line = request
     elif search_string == "Network/UserAgent":
-        l7conn = networkconnectionobj.Layer7ConnectionsType()
-        httpsession = httpsessionobj.HTTPSessionObjectType()
-        httpreqrep = httpsessionobj.HTTPRequestResponseType()
-        httpreq = httpsessionobj.HTTPClientRequestType()
-        httphdr = httpsessionobj.HTTPRequestHeaderType()
-        httphdrfields = httpsessionobj.HTTPRequestHeaderFieldsType()
-        httphdrfields.set_User_Agent(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        httphdr.set_Parsed_Header(httphdrfields)
-        httpreq.set_HTTP_Request_Header(httphdr)
-        httpreqrep.set_HTTP_Client_Request(httpreq)
-        httpsession.add_HTTP_Request_Response(httpreqrep)
-        l7conn.set_HTTP_Session(httpsession)
-        netconn.set_Layer7_Connections(l7conn)
-    elif search_string == "PortItem/CreationTime" or search_string == "ProcessItem/PortList/PortItem/CreationTime":
-        netconn.set_Creation_Time(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
+        set_field(header_fields, "user_agent", content_string, condition)
+        header.parsed_header = header_fields
+    elif"PortItem/CreationTime" in search_string:
+        set_field(net, "creation_time", content_string, condition)
+    else:
+        return None
 
-    if valueset and netconn.hasContent_():
-        netconn.set_xsi_type('NetworkConnectionObj:NetworkConnectionObjectType')
-    elif not valueset:
-        netconn = None
-
-    return netconn
+    return net
     
 def createNetRouteObj(search_string, content_string, condition):  
     #Create the network route entry object
