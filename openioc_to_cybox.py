@@ -10,7 +10,6 @@ Generates valid CybOX v2.1 XML output from OpenIOCs
 import os
 import sys
 import argparse
-import itertools
 import logging
 
 # python-cybox
@@ -21,6 +20,8 @@ import cybox.bindings.cybox_common as cybox_common_binding
 
 # openioc bindings and utilities
 import openioc
+
+# Helpers
 import ioc_observable
 
 
@@ -41,14 +42,6 @@ CONDITIONS = {
 # Exit codes
 EXIT_SUCCESS = 0
 EXIT_FAILURE = 1
-
-
-def idgen(base=''):
-    for cnt in itertools.count(start=1):
-        yield base + str(cnt)
-
-# Global identifier generator
-OBSERVABLE_ID = idgen(base="openioc:indicator-item-")
 
 
 def normalize_id(id):
@@ -133,19 +126,15 @@ def process_indicator_item(indicator_item, observables=None,
     if observable:
         skipped_term = forcestring(indicator_item.get_Context().get_search())
 
-        description_text = (
-            "Error|Ignore. IndicatorItem not translated. Encountered IOC "
-            "term %s , which does not currently map to CybOX."
-        )
-        description_text = description_text % skipped_term
-        description_text = utils.wrap_cdata (description_text)
+        fmt = ("Error|Ignore. IndicatorItem not translated. Encountered IOC "
+               "term %s , which does not currently map to CybOX.")
+        desc = fmt % skipped_term
+        desc = utils.wrap_cdata(desc)
 
-        observable.set_Description(cybox_common_binding.StructuredTextType(valueOf_=description_text))
+        observable.set_Description(cybox_common_binding.StructuredTextType(valueOf_=desc))
         return observable
 
     return False
-
-
 
 def test_compatible_indicator(indicator):
     """#Test if an indicator is 'compatible', that is if it has at least one
@@ -212,7 +201,6 @@ def generate_cybox(indicators, infilename, embed_observables):
     indicator_definition = indicators.get_definition()
     for indicator in indicator_definition.get_Indicator():
         #Create the 'indicator' observable for holding the boolean indicator logic
-        id_string = ''
         if indicator.get_id() is not None:
             id_string = 'openioc:indicator-' + normalize_id(indicator.get_id())
         else:
@@ -312,6 +300,11 @@ def make_observables(indicators, embed_observables):
     return Observables.from_obj(observables)
 
 
+def init_id_namespace():
+    ns = utils.Namespace(name="http://openioc.org/", prefix="openioc")
+    utils.set_id_namespace(ns)
+
+
 def main():
     # Parse command line arguments
     argparser = get_arg_parser()
@@ -319,6 +312,9 @@ def main():
 
     # Initialize the module logger.
     init_logging(args.verbose)
+
+    # Set the id namespace
+    init_id_namespace()
 
     try:
         LOG.info("Parsing OpenIOC file %s...", args.infile)
