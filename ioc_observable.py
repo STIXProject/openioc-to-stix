@@ -4,9 +4,11 @@
 # builtin
 import uuid
 import logging
+import collections
 
 # external utilities
 from cybox import utils
+from cybox.common.properties import String
 
 # external cybox bindings
 import cybox.bindings.cybox_core as core
@@ -63,14 +65,14 @@ def sanitize(content_string):
         return content_string
 
 
-def createObj(search_string, content_string, condition):
+def create_object(search_string, content_string, condition):
     retval = None
 
-    create_funcs = {
-        'DiskItem': createDiskObj,
-        'DnsEntryItem': createDNSObj,
-        'DriverItem': createDriverObj,
-        'Email': createEmailObj,
+    funcs = {
+        'DiskItem': create_disk_obj,
+        'DnsEntryItem': create_dns_obj,
+        'DriverItem': create_driver_obj,
+        'Email': create_email_obj,
         'EventLogItem': createWinEventLogObj,
         'FileItem': createFileObj,
         'HookItem': createHookObj,
@@ -89,27 +91,27 @@ def createObj(search_string, content_string, condition):
         'VolumeItem': createVolumeObj
     }
 
-    key = search_string.split('/',1)[0]
+    key = search_string.split('/', 1)[0]
 
-    if key in create_funcs:
+    if key in funcs:
         # Get the object creation function for the key
-        makefunc = create_funcs[key]
+        makefunc = funcs[key]
+        retval   = makefunc(search_string, content_string, condition)
 
-        # Create our defined object
-        defined_object = makefunc(key, content_string, condition)
-
-        if defined_object.hasContent_():
-            defined_object.object_reference = None
-            retval = defined_object
-    else:
-        LOG.debug("Unable to create object for '%s'.", key)
+    if retval is None:
+        LOG.debug("Unable to map %s to CybOX Object.", search_string)
 
     return retval
 
 
-def set_field(obj, attrname, value, condition='Equals')
+def set_field(obj, attrname, value, condition='Equals'):
     # Set the attribute value
-    setattr(obj, attrname, value)
+    attr = getattr(obj, attrname)
+
+    if callable(attr):
+        attr(value)
+    else:
+        setattr(obj, attrname, sanitize(value))
 
     # Set the condition
     attr = getattr(obj, attrname)
@@ -126,35 +128,32 @@ def has_content(object):
 ## primary object functions
 
 def create_disk_obj(search_string, content_string, condition):
-    from cybox.objects.disk_object import Disk, DiskPartition
+    from cybox.objects.disk_object import Disk, DiskPartition, PartitionList
 
     disk = Disk()
     part = DiskPartition()
 
-    if search_string == "DiskItem/DiskName":
-        disk.disk_name = sanitize(content_string)
-        disk.disk_name.condition = condition
-    elif search_string == "DiskItem/DiskSize":
-        disk.disk_size = content_string
-        disk.disk_size.condition = condition
-    elif search_string == "DiskItem/PartitionList/Partition/PartitionLength":
-        part.partition_length = content_string
-        part.partition_length.condition = condition
-    elif search_string == "DiskItem/PartitionList/Partition/PartitionNumber":
-        part.partition_number = content_string
-        part.partition_number.condition = condition
-    elif search_string == "DiskItem/PartitionList/Partition/PartitionOffset":
-        part.partition_offset = content_string
-        part.partition_offset.condition = condition
-    elif search_string == "DiskItem/PartitionList/Partition/PartitionType":
-        part.type = content_string
-        part.type.condition = condition
+    disk_attrmap = {
+        "DiskItem/DiskName": "disk_name",
+        "DiskItem/DiskSize": "disk_size"
+    }
+
+    part_attrmap = {
+        "DiskItem/PartitionList/Partition/PartitionLength": "partition_length",
+        "DiskItem/PartitionList/Partition/PartitionNumber": "partition_number",
+        "DiskItem/PartitionList/Partition/PartitionOffset": "partition_offset",
+        "DiskItem/PartitionList/Partition/PartitionType": "partition_type"
+    }
+
+    if search_string in disk_attrmap:
+        set_field(disk, disk_attrmap[search_string], content_string, condition)
+    elif search_string in part_attrmap:
+        set_field(part, part_attrmap[search_string], content_string, condition)
+    else:
+        return None
 
     if has_content(part):
-        disk.partition_list = [part]
-
-    if not has_content(disk):
-        return None
+        disk.partition_list = PartitionList(part)
 
     return disk
 
@@ -162,547 +161,296 @@ def create_dns_obj(search_string, content_string, condition):
     from cybox.objects.dns_record_object import DNSRecord
     from cybox.objects.dns_cache_object import DNSCache, DNSCacheEntry
 
+    cache = DNSCache()
     record = DNSRecord()
 
-    if search_string == "DnsEntryItem/DataLength":
-        record.data_length = content_string
-        record.data_length.condition = condition
-    elif search_string == "DnsEntryItem/Flags":
-        record.flags = content_string
-        record.flags.condition = condition
-    elif search_string == "DnsEntryItem/Host":
-        record.domain_name = content_string
-        record.domain_name.condition = condition
-    elif search_string == "RecordData/Host":
-        record.record_data = sanitize(content_string)
-        record.record_data.condition = condition
-    elif search_string == "RecordData/IPv4Address":
-        record.record_data = sanitize(content_string)
-        record.record_data.condition = condition
-    elif search_string == "DnsEntryItem/RecordName":
-        record.record_name = sanitize(content_string)
-        record.record_name.condition = condition
-    elif search_string == "DnsEntryItem/RecordType":
-        record.record_type = sanitize(content_string)
-        record.record_type.condition = condition
-    elif search_string == "DnsEntryItem/TimeToLive":
-        record.ttl = content_string
-        record.ttl.condition = condition
+    attrmap = {
+        "DnsEntryItem/DataLength": "data_length",
+        "DnsEntryItem/Flags": "flags",
+        "DnsEntryItem/Host": "domain_name",
+        "RecordData/Host": "record_data",
+        "RecordData/IPv4Address": "record_data",
+        "DnsEntryItem/RecordName": "record_name",
+        "DnsEntryItem/RecordType": "record_type",
+        "DnsEntryItem/TimeToLive": "ttl"
+    }
 
-    if not has_content(record):
+    if search_string in attrmap:
+        set_field(record, attrmap[search_string], content_string, condition)
+    else:
         return None
 
     entry = DNSCacheEntry()
     entry.dns_entry = record
-
-    cache = DNSCache()
     cache.dns_cache_entry = entry
 
     return cache
 
-def createDriverObj(search_string, content_string, condition):
-    from cybox.objects.win_driver_object import WinDriver, DeviceObjectStruct
+def create_driver_obj(search_string, content_string, condition):
+    from cybox.objects.win_driver_object import WinDriver, DeviceObjectStruct, DeviceObjectList
+
+    windriver = WinDriver()
+    device = DeviceObjectStruct()
+
+    device_attrmap = {
+        "DriverItem/DeviceItem/AttachedDeviceName": "attached_device_name",
+        "DriverItem/DeviceItem/AttachedDeviceObject": "attached_device_object",
+        "DriverItem/DeviceItem/AttachedToDeviceName": "attached_to_device_name",
+        "DriverItem/DeviceItem/AttachedToDeviceObject": "attached_to_device_object",
+        "DriverItem/DeviceItem/AttachedToDriverName": "attached_to_driver_name",
+        "DriverItem/DeviceItem/AttachedToDriverObject": "attached_to_driver_object",
+        "DriverItem/DeviceItem/DeviceName": "device_name",
+        "DriverItem/DeviceItem/DeviceObject": "device_object"
+    }
+
+    driver_attrmap = {
+        "DriverItem/DriverInit": "driver_init",
+        "DriverItem/DriverName": "driver_name",
+        "DriverItem/DriverObjectAddress": "driver_object_address",
+        "DriverItem/DriverStartIo": "driver_start_io",
+        "DriverItem/DriverUnload": "driver_unload",
+        "DriverItem/ImageBase": "image_base",
+        "DriverItem/ImageSize": "image_size"
+    }
+
+    file_keys = (
+        "DriverItem/Sha1sum",
+        "DriverItem/Sha256sum",
+        "DriverItem/StringList/string"
+    )
 
     if "/PEInfo/" in search_string:
         return createWinExecObj(search_string, content_string, condition)
-
-    windriver = WinDriver()
-
-    if search_string == "DriverItem/CertificateIssuer":
-        pass
-    elif search_string == "DriverItem/CertificateSubject":
-        pass
-    elif search_string == "DriverItem/DeviceItem/AttachedDeviceName":
-        device = DeviceObjectStruct()
-        windriver.device_object_list = [device]
-        device.attached_device_name = sanitize(content_string)
-        device.attached_device_name.condition = condition
-    elif search_string == "DriverItem/DeviceItem/AttachedDeviceObject":
-        device = DeviceObjectStruct()
-        windriver.device_object_list = [device]
-        device.attached_device_object = content_string
-        device.attached_device_object.condition = condition
-    elif search_string == "DriverItem/DeviceItem/AttachedDriverName":
-        pass
-    elif search_string == "DriverItem/DeviceItem/AttachedDriverObject": 
-        pass
-    elif search_string == "DriverItem/DeviceItem/AttachedToDeviceName":
-        device = DeviceObjectStruct()
-        windriver.device_object_list = [device]
-        device.attached_to_device_name = sanitize(content_string)
-        device.attached_to_device_name.condition = condition
-    elif search_string == "DriverItem/DeviceItem/AttachedToDeviceObject":
-        device = DeviceObjectStruct()
-        windriver.device_object_list = [device]
-        device.attached_to_device_object = content_string
-        device.attached_to_device_object.condition = condition
-    elif search_string == "DriverItem/DeviceItem/AttachedToDriverName":
-        device = DeviceObjectStruct()
-        windriver.device_object_list = [device]
-        device.attached_to_driver_name = sanitize(content_string)
-        device.attached_to_driver_name.condition = condition
-    elif search_string == "DriverItem/DeviceItem/AttachedToDriverObject":
-        device = DeviceObjectStruct()
-        windriver.device_object_list = [device]
-        device.attached_to_driver_object = content_string
-        device.attached_to_driver_object.condition = condition
-    elif search_string == "DriverItem/DeviceItem/DeviceName":
-        device = DeviceObjectStruct()
-        windriver.device_object_list = [device]
-        device.device_name = sanitize(content_string)
-        device.device_name.condition = condition
-    elif search_string == "DriverItem/DeviceItem/DeviceObject":
-        device = DeviceObjectStruct()
-        windriver.device_object_list = [device]
-        device.device_object = content_string
-        device.device_object.condition = condition
-    elif search_string == "DriverItem/DeviceItem/DriverName":
-        pass
-    elif search_string == "DriverItem/DriverInit":
-        windriver.driver_init = sanitize(content_string)
-        windriver.driver_init.condition = condition
-    elif search_string == "DriverItem/DriverName":
-        windriver.driver_name = sanitize(content_string)
-        windriver.driver_name.condition = condition
-    elif search_string == "DriverItem/DriverObjectAddress":
-        windriver.driver_object_address = content_string
-        windriver.driver_object_address.condition = condition
-    elif search_string == "DriverItem/DriverStartIo":
-        windriver.driver_start_io = content_string
-        windriver.driver_start_io.condition = condition
-    elif search_string == "DriverItem/DriverUnload":
-        windriver.driver_unload = content_string
-        windriver.driver_unload.condition = condition
-    elif search_string == "DriverItem/ImageBase":
-        windriver.image_base = content_string
-        windriver.image_base.condition = condition
-    elif search_string == "DriverItem/ImageSize":
-        windriver.image_size = content_string
-        windriver.image_size.condition = condition
-    elif search_string == "DriverItem/Md5sum":
-        pass
-    elif search_string == "DriverItem/Sha1sum":
+    if search_string in file_keys:
         return createFileObj(search_string, content_string, condition)
-    elif search_string == "DriverItem/Sha256sum":
-        return createFileObj(search_string, content_string, condition)
-    elif search_string == "DriverItem/SignatureDescription":
-        pass
-    elif search_string == "DriverItem/SignatureExists":
-        pass
-    elif search_string == "DriverItem/SignatureVerified":
-        pass
-    elif search_string == "DriverItem/StringList/string":
-        return createFileObj(search_string, content_string, condition)
-
-    if not has_content(windriver):
+    elif search_string in device_attrmap:
+        set_field(device, device_attrmap[search_string], content_string, condition)
+    elif search_string in driver_attrmap:
+        set_field(windriver, driver_attrmap[search_string], content_string, condition)
+    else:
         return None
+
+    if has_content(device):
+        windriver.device_object_list = DeviceObjectList(device)
 
     return windriver
 
-def createEmailObj(search_string, content_string, condition):
-    from cybox.objects.file_object import File, FilePath
+def create_email_obj(search_string, content_string, condition):
+    from cybox.objects.file_object import File
     from cybox.objects.email_message_object import (
-        EmailAddress, EmailMessage, EmailHeader, EmailRecipients
+        Attachments, EmailMessage, EmailHeader, ReceivedLine, ReceivedLineList
     )
 
-    retval      = []
     email       = EmailMessage()
+    header      = EmailHeader()
+    received    = ReceivedLine()
     attachment  = File()
 
-    def attach(email, attachment):
-        email.attachments = attachment.parent.id_
+    file_attrmap = {
+        "Email/Attachment/Name": "file_name",
+        "Email/Attachment/SizeInBytes": "size_in_bytes"
+    }
+
+    email_attrmap = {
+        "Email/Body": "raw_body"
+    }
+
+    received_attrmap = {
+        "Email/Received": "timestamp",
+        "Email/ReceivedFromHost": "from_",
+        "Email/ReceivedFromIP": "from_"
+
+    }
+
+    header_attrmap = {
+        "Email/BCC": "bcc",
+        "Email/CC": "cc",
+        "Email/Content-Type": "content_type",
+        "Email/Date": "date",
+        "Email/From": "from_",
+        "Email/In-Reply-To": "in_reply_to",
+        "Email/MIME-Version": "mime_version",
+        "Email/Subject": "subject",
+        "Email/To": "to"
+    }
+
+    if search_string in email_attrmap:
+        set_field(email, email_attrmap[search_string], content_string, condition)
+    elif search_string in file_attrmap:
+        set_field(attachment, file_attrmap[search_string], content_string, condition)
+    elif search_string in header_attrmap:
+        set_field(header, header_attrmap[search_string], content_string, condition)
+    elif search_string in received_attrmap:
+        set_field(received, received_attrmap[search_string], content_string, condition)
+        header.received_lines = ReceivedLineList(received)
+    else:
+        return None
+
+    if has_content(header):
+        email.header = header
+
+    if has_content(attachment):
+        email.attachments = Attachments(attachment.parent.id_)
+        return [email, attachment]
+
+    return email
 
 
-ex
+def create_win_event_log_obj(search_string, content_string, condition):
+    from cybox.objects.win_event_log_object import WinEventLog, UnformattedMessageList
 
-    if search_string == "Email/Attachment/Content":
-        pass
-    elif search_string == "Email/Attachment/MIMEType":
-        pass
-    elif search_string == "Email/Attachment/Name":
-        attachment.file_name = sanitize(content_string)
-        attachment.file_name.condition = condition
-        attach(email, attachment)
+    eventlog = WinEventLog()
 
-        email_attachments = emailmessageobj.AttachmentsType()
-        attachment = emailmessageobj.AttachmentReferenceType()
-        relobj = core.RelatedObjectType()
-        fileattachobj = fileobj.FileObjectType()
-        fileattachobj.set_xsi_type('FileObj:FileObjectType')
-        fileattachobj.set_File_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        relobj.set_Properties(fileattachobj)
-        relobj.set_id('cybox:related-object-' + str(uuid.uuid1())) 
-        attachment.set_object_reference(relobj.get_id())
-        email_attachments.add_File(attachment)
-        emailobj.set_Attachments(email_attachments)
-        retVal.append(emailobj)
-        retVal.append(relobj)
+    attrmap = {
+        "EventLogItem/CorrelationActivityId": "correlation_activity_id",
+        "EventLogItem/CorrelationRelatedActivityId": "correlation_related_activity_id",
+        "EventLogItem/EID": "eid",
+        "EventLogItem/ExecutionProcessId": "execution_process_id",
+        "EventLogItem/ExecutionThreadId": "execution_thread_id",
+        "EventLogItem/blob": "blob",
+        "EventLogItem/category": "category",
+        "EventLogItem/categoryNum": "category_num",
+        "EventLogItem/genTime": "generation_time",
+        "EventLogItem/index": "index",
+        "EventLogItem/log": "log",
+        "EventLogItem/machine": "machine",
+        "EventLogItem/message": "message",
+        "EventLogItem/reserved": "reserved",
+        "EventLogItem/source": "source",
+        "EventLogItem/type": "type",
+        "EventLogItem/user": "user",
+        "EventLogItem/writeTime": "write_time"
+    }
 
-
-    elif search_string == "Email/Attachment/SizeInBytes":
-        isAttachment = True
-        email_attachments = emailmessageobj.AttachmentsType()
-        attachment = emailmessageobj.AttachmentReferenceType()
-        relobj = core.RelatedObjectType()
-        fileattachobj = fileobj.FileObjectType()
-        fileattachobj.set_xsi_type('FileObj:FileObjectType')
-        fileattachobj.set_Size_In_Bytes(process_numerical_value(common.UnsignedLongObjectPropertyType(datatype=None), content_string, condition))
-        relobj.set_Properties(fileattachobj)
-        relobj.set_Relationship(common.ControlledVocabularyStringType(valueOf_='Received', xsi_type='cyboxVocabs:ObjectRelationshipVocab-1.0')) 
-        attachment.set_object_reference('FileObj')
-        email_attachments.add_File(attachment)
-        emailobj.set_Attachments(email_attachments)
-        retVal.append(emailobj)
-        retVal.append(relobj)
-    elif search_string == "Email/AttachmentCount":
-        valueset = False
-    elif search_string == "Email/BCC":
-        email_header = emailmessageobj.EmailHeaderType()
-        email_bcc = emailmessageobj.EmailRecipientsType()
-        email_recipient = addressobj.AddressObjectType()
-        email_recipient.set_Address_Value(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        email_bcc.set_Recipient(email_recipient)
-        email_header.set_BCC(email_bcc)
-        emailobj.set_Header(email_header)
-    elif search_string == "Email/Body":
-        emailobj.set_Raw_Body(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "Email/CC":
-        email_header = emailmessageobj.EmailHeaderType()
-        email_cc = emailmessageobj.EmailRecipientsType()
-        email_recipient = addressobj.AddressObjectType()
-        email_recipient.set_Address_Value(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        email_cc.set_Recipient(email_recipient)
-        email_header.set_CC(email_cc)
-        emailobj.set_Header(email_header)
-    elif search_string == "Email/Content-Type":
-        email_header = emailmessageobj.EmailHeaderType()
-        email_header.set_Content_Type(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        emailobj.set_Header(email_header)
-    elif search_string == "Email/Date":
-        email_header = emailmessageobj.EmailHeaderType()
-        email_header.set_Date(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        emailobj.set_Header(email_header)
-    elif search_string == "Email/From":
-        email_header = emailmessageobj.EmailHeaderType()
-        email_from = addressobj.AddressObjectType()
-        email_from.set_category("e-mail")
-        email_from.set_Address_Value(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        email_header.set_From(email_from)
-        emailobj.set_Header(email_header)
-    elif search_string == "Email/In-Reply-To":
-        email_header = emailmessageobj.EmailHeaderType()
-        email_header.set_In_Reply_To(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        emailobj.set_Header(email_header)
-    elif search_string == "Email/MIME-Version":
-        email_header = emailmessageobj.EmailHeaderType()
-        email_header.set_MIME_Version(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        emailobj.set_Header(email_header)
-    elif search_string == "Email/Received":
-        email_header = emailmessageobj.EmailHeaderType()
-        email_received = emailmessageobj.EmailReceivedLineType()
-        email_received.set_Timestamp(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        email_header.set_Received_Lines(email_received)
-        emailobj.set_Header(email_header)
-    elif search_string == "Email/ReceivedFromHost":
-        email_header = emailmessageobj.EmailHeaderType()
-        email_received = emailmessageobj.EmailReceivedLineType()
-        email_received.set_From(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        email_header.set_Received_Lines(email_received)
-        emailobj.set_Header(email_header)
-    elif search_string == "Email/ReceivedFromIP":
-        email_header = emailmessageobj.EmailHeaderType()
-        email_received = emailmessageobj.EmailReceivedLineType()
-        email_received.set_From(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        email_header.set_Received_Lines(email_received)
-        emailobj.set_Header(email_header)
-    elif search_string == "Email/References":
-        valueset = False
-    elif search_string == "Email/Return-Path":
-        valueset = False
-    elif search_string == "Email/Subject":
-        email_header = emailmessageobj.EmailHeaderType()
-        email_header.set_Subject(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        emailobj.set_Header(email_header)
-    elif search_string == "Email/Thread-Index":
-        valueset = False
-    elif search_string == "Email/Thread-Topic":
-        valueset = False
-    elif search_string == "Email/To":
-        email_header = emailmessageobj.EmailHeaderType()
-        email_recipients = emailmessageobj.EmailRecipientsType()
-        email_to = addressobj.AddressObjectType()
-        email_to.set_category("e-mail")
-        email_to.set_Address_Value(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        email_recipients.add_Recipient(email_to)
-        email_header.set_To(email_recipients)
-        emailobj.set_Header(email_header)
-    elif search_string == "Email/X-MS-Has-Attach":
-        valueset = False
-    elif search_string == "Email/X-filenames":
-        valueset = False
-    elif search_string == "Email/X-filesizes":
-        valueset = False
-    elif search_string == "Email/X-filetypes":
-        valueset = False
-
-    if valueset and emailobj.hasContent_():
-        emailobj.set_xsi_type('EmailMessageObj:EmailMessageObjectType')
-    elif not valueset:
-        emailobj = None
-    
-    if isAttachment:
-        return retVal
-    
-    return emailobj
-
-def createWinEventLogObj(search_string, content_string, condition):
-    #Create the Win event log object
-    eventlogobj = wineventlogobj.WindowsEventLogObjectType()
-
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
-    
-    if search_string == "EventLogItem/CorrelationActivityId":
-        eventlogobj.set_Correlation_Activity_ID(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "EventLogItem/CorrelationRelatedActivityId":
-        eventlogobj.set_Correlation_Related_Activity_ID(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "EventLogItem/EID":
-        eventlogobj.set_EID(common.LongObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-    elif search_string == "EventLogItem/ExecutionProcessId":
-        eventlogobj.set_Execution_Process_ID(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "EventLogItem/ExecutionThreadId":
-        eventlogobj.set_Execution_Thread_ID(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "EventLogItem/blob":
-        eventlogobj.set_Blob(common.Base64BinaryObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-    elif search_string == "EventLogItem/category":
-        eventlogobj.set_Category(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "EventLogItem/categoryNum":
-        eventlogobj.set_Category_Num(common.LongObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-    elif search_string == "EventLogItem/genTime":
-        eventlogobj.set_Generation_Time(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-    elif search_string == "EventLogItem/index":
-        eventlogobj.set_Index(common.LongObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-    elif search_string == "EventLogItem/log":
-        eventlogobj.set_Log(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "EventLogItem/machine":
-        eventlogobj.set_Machine(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "EventLogItem/message":
-        eventlogobj.set_Message(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "EventLogItem/reserved":
-        eventlogobj.set_Reserved(common.LongObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-    elif search_string == "EventLogItem/source":
-        eventlogobj.set_Source(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "EventLogItem/type":
-        eventlogobj.set_Type(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
+    if search_string in attrmap:
+        set_field(eventlog, attrmap[search_string], content_string, condition)
     elif search_string == "EventLogItem/unformattedMessage/string":
-        unformatted_message_list = wineventlogobj.UnformattedMessageListType()
-        unformatted_message_list.add_Unformatted_Message(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        eventlogobj.set_Unformatted_Message_List(unformatted_message_list)
-    elif search_string == "EventLogItem/user":
-        eventlogobj.set_User(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "EventLogItem/writeTime":
-        eventlogobj.set_Write_Time(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
+        s = String(sanitize(content_string))
+        s.condition = condition
+        eventlog.unformatted_message_list = UnformattedMessageList(s)
+    else:
+        return None
 
-    if valueset and eventlogobj.hasContent_():
-        eventlogobj.set_xsi_type('WinEventLogObj:WindowsEventLogObjectType')
-    elif not valueset:
-        eventlogobj = None
-    
-    return eventlogobj
+    return eventlog
 
-def createFileObj(search_string, content_string, condition):
-    #Create the file object
-    fleobj = fileobj.FileObjectType()
+def create_file_obj(search_string, content_string, condition):
+    from cybox.objects.file_object import File
+    from cybox.common import ExtractedStrings, ExtractedFeatures
 
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
+    f = File()
 
-    if search_string == "FileItem/Accessed":
-        fleobj.set_Accessed_Time(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-    elif search_string == "FileItem/Changed":
-        valueset = False
-    elif search_string == "FileItem/Created":
-        fleobj.set_Created_Time(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-    elif search_string == "FileItem/DevicePath":
-        fleobj.set_Device_Path(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "FileItem/Drive":
+    attrmap = {
+        "FileItem/Accessed": "accessed_time",
+        "FileItem/Created": "created_time",
+        "FileItem/DevicePath": "device_path",
+        "FileItem/FileExtension": "file_extension",
+        "FileItem/FileName": "file_name",
+        "FileItem/FilePath": "file_path",
+        "FileItem/FullPath": "full_path",
+        "FileItem/Md5sum": "md5",
+        "FileItem/Sha256sum": "sha256",
+        "FileItem/Sha1sum": "sha1",
+        "DriverItem/Sha1sum": "sha1",
+        "DriverItem/Md5sum": "md5",
+        "DriverItem/Sha256sum": "sha256",
+        "FileItem/Modified": "modified_time",
+        "FileItem/PeakEntropy": "peak_entropy",
+        "FileItem/SizeInBytes": "size_in_bytes",
+        "FileItem/Username": "user_owner"
+    }
+
+    winfile_keys = (
+        "FileItem/Drive",
+        "FileItem/FileAttributes",
+        "FileItem/FilenameAccessed",
+        "FileItem/FilenameCreated",
+        "FileItem/FilenameModified",
+        "FileItem/SecurityID",
+        "FileItem/SecurityType",
+        "FileItem/StreamList/Stream/Md5sum",
+        "FileItem/StreamList/Stream/Name",
+        "FileItem/StreamList/Stream/Sha1sum",
+        "FileItem/StreamList/Stream/Sha256sum",
+        "FileItem/StreamList/Stream/SizeInBytes"
+    )
+
+    if search_string in attrmap:
+        set_field(f, attrmap[search_string], content_string, condition)
+    elif search_string in winfile_keys:
         return createWinFileObj(search_string, content_string, condition)
-    elif search_string == "FileItem/FileAttributes":
-        return createWinFileObj(search_string, content_string, condition)
-    elif search_string == "FileItem/FileExtension":
-        fleobj.set_File_Extension(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "FileItem/FileName":
-        fleobj.set_File_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "FileItem/FilePath":
-        fleobj.set_File_Path(fileobj.FilePathType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "FileItem/FilenameAccessed":
-        return createWinFileObj(search_string, content_string, condition)
-    elif search_string == "FileItem/FilenameChanged":
-        valueset = False
-    elif search_string == "FileItem/FilenameCreated":
-        return createWinFileObj(search_string, content_string, condition)
-    elif search_string == "FileItem/FilenameModified":
-        return createWinFileObj(search_string, content_string, condition)
-    elif search_string == "FileItem/FullPath":
-        fleobj.set_Full_Path(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
     elif search_string == "FileItem/INode":
         return createUnixFileObj(search_string, content_string, condition)
-    elif search_string == "FileItem/Md5sum":
-        hashes = common.HashListType()
-        md5hash = common.HashType()
-        md5hash.set_Type(common.ControlledVocabularyStringType(valueOf_='MD5', xsi_type='cyboxVocabs:HashNameVocab-1.0'))
-        md5hash.set_Simple_Hash_Value(process_numerical_value(common.HexBinaryObjectPropertyType(datatype=None), content_string, condition))
-        hashes.add_Hash(md5hash)
-        fleobj.set_Hashes(hashes)
-    elif search_string == "FileItem/Modified":
-        fleobj.set_Modified_Time(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-    elif search_string == "FileItem/detectedAnomaly":
-        valueset = False
-    elif search_string.count('PEInfo') > 0:
+    elif '/PEInfo/' in search_string:
         return createWinExecObj(search_string, content_string, condition)
-    elif search_string == "FileItem/PeakCodeEntropy":
-        valueset = False
-    elif search_string == "FileItem/PeakEntropy":
-        fleobj.set_Peak_Entropy(common.DoubleObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-    elif search_string == "FileItem/SecurityID":
-        return createWinFileObj(search_string, content_string, condition)
-    elif search_string == "FileItem/SecurityType":
-        return createWinFileObj(search_string, content_string, condition)
-    elif search_string == "FileItem/Sha1sum" or search_string == "DriverItem/Sha1sum":
-        hashes = common.HashListType()
-        sha1hash = common.HashType()
-        sha1hash.set_Type(common.ControlledVocabularyStringType(valueOf_='SHA1', xsi_type='cyboxVocabs:HashNameVocab-1.0'))
-        sha1hash.set_Simple_Hash_Value(process_numerical_value(common.HexBinaryObjectPropertyType(datatype=None), content_string, condition))
-        hashes.add_Hash(sha1hash)
-        fleobj.set_Hashes(hashes)
-    elif search_string == "FileItem/Sha256sum" or search_string == "DriverItem/Sha1sum":
-        hashes = common.HashListType()
-        sha256hash = common.HashType()
-        sha256hash.set_Type(common.ControlledVocabularyStringType(valueOf_='SHA256', xsi_type='cyboxVocabs:HashNameVocab-1.0'))
-        sha256hash.set_Simple_Hash_Value(process_numerical_value(common.HexBinaryObjectPropertyType(datatype=None), content_string, condition))
-        hashes.add_Hash(sha256hash)
-        fleobj.set_Hashes(hashes)
-    elif search_string == "FileItem/SizeInBytes":
-        fleobj.set_Size_In_Bytes(process_numerical_value(common.UnsignedLongObjectPropertyType(datatype=None), content_string, condition))
-    elif search_string == "FileItem/StreamList/Stream/Md5sum":
-        return createWinFileObj(search_string, content_string, condition)
-    elif search_string == "FileItem/StreamList/Stream/Name":
-        return createWinFileObj(search_string, content_string, condition)
-    elif search_string == "FileItem/StreamList/Stream/Sha1sum":
-        return createWinFileObj(search_string, content_string, condition)
-    elif search_string == "FileItem/StreamList/Stream/Sha256sum":
-        return createWinFileObj(search_string, content_string, condition)
-    elif search_string == "FileItem/StreamList/Stream/SizeInBytes":
-        return createWinFileObj(search_string, content_string, condition)
-    elif search_string == "FileItem/StringList/string" or search_string == "DriverItem/StringList/string":
-        extracted_features = common.ExtractedFeaturesType()
-        strings = common.ExtractedStringsType()
-        string  = common.ExtractedStringType()
-        string.set_String_Value(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        strings.add_String(string)
-        extracted_features.set_Strings(strings)
-        fleobj.set_Extracted_Features(extracted_features)       
-    elif search_string == "FileItem/Username":
-        fleobj.set_User_Owner(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
+    elif search_string in ("FileItem/StringList/string", "DriverItem/StringList/string"):
+        extracted_features = ExtractedFeatures()
+        extracted_features.strings = ExtractedStrings(sanitize(content_string))
+        f.extracted_features = extracted_features
+    else:
+        return None
 
-    if valueset and fleobj.hasContent_():
-        fleobj.set_xsi_type('FileObj:FileObjectType')
-    elif not valueset:
-        fleobj = None
-    
-    return fleobj
+    return f
 
-def createHookObj(search_string, content_string, condition):
-    #Create the hook object
-    hookobject = winkernelhookobj.WindowsKernelHookObjectType()
+def create_hook_obj(search_string, content_string, condition):
+    from cybox.objects.win_kernel_hook_object import WinKernelHook
+    from cybox.common.digitalsignature import DigitalSignature
 
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
+    hook = WinKernelHook()
+    ds = DigitalSignature()
 
-    if search_string == "HookItem/DigitalSignatureHooking/CertificateIssuer":
-        digital_signature = common.DigitalSignatureInfoType()
-        digital_signature.set_Certificate_Subject(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        hookobject.set_Digital_Signature_Hooking(digital_signature)
-    elif search_string == "HookItem/DigitalSignatureHooking/CertificateSubject":
-        digital_signature = common.DigitalSignatureInfoType()
-        digital_signature.set_Certificate_Subject(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        hookobject.set_Digital_Signature_Hooking(digital_signature)
-    elif search_string == "HookItem/DigitalSignatureHooking/Description":
-        digital_signature = common.DigitalSignatureInfoType()
-        digital_signature.set_Signature_Description(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        hookobject.set_Digital_Signature_Hooking(digital_signature)
-    elif search_string == "HookItem/DigitalSignatureHooking/SignatureExists":
-        digital_signature = common.DigitalSignatureInfoType()
-        digital_signature.signature_exists(content_string)
-        hookobject.set_Digital_Signature_Hooking(digital_signature)
-    elif search_string == "HookItem/DigitalSignatureHooking/SignatureVerified":
-        digital_signature = common.DigitalSignatureInfoType()
-        digital_signature.signature_verified(content_string)
-        hookobject.set_Digital_Signature_Hooking(digital_signature)
-    elif search_string == "HookItem/DigitalSignatureHooked/CertificateIssuer":
-        digital_signature = common.DigitalSignatureInfoType()
-        digital_signature.set_Certificate_Subject(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        hookobject.set_Digital_Signature_Hooked(digital_signature)
-    elif search_string == "HookItem/DigitalSignatureHooked/CertificateSubject":
-        digital_signature = common.DigitalSignatureInfoType()
-        digital_signature.set_Certificate_Subject(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        hookobject.set_Digital_Signature_Hooked(digital_signature)
-    elif search_string == "HookItem/DigitalSignatureHooked/Description":
-        digital_signature = common.DigitalSignatureInfoType()
-        digital_signature.set_Signature_Description(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        hookobject.set_Digital_Signature_Hooked(digital_signature)
-    elif search_string == "HookItem/DigitalSignatureHooked/SignatureExists":
-        digital_signature = common.DigitalSignatureInfoType()
-        digital_signature.signature_exists(content_string)
-        hookobject.set_Digital_Signature_Hooked(digital_signature)
-    elif search_string == "HookItem/DigitalSignatureHooked/SignatureVerified":
-        digital_signature = common.DigitalSignatureInfoType()
-        digital_signature.signature_verified(content_string)
-        hookobject.set_Digital_Signature_Hooked(digital_signature)
-    elif search_string == "HookItem/HookDescription":
-        hookobject.set_Hook_Description(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "HookItem/HookedFunction":
-        hookobject.set_Hooked_Function(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "HookItem/HookedModule":
-        hookobject.set_Hooked_Module(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "HookItem/HookingAddress":
-        hookobject.set_Hooking_Address(process_numerical_value(common.UnsignedLongObjectPropertyType(datatype=None), content_string, condition))
-    elif search_string == "HookItem/HookingModule":
-        hookobject.set_Hooking_Module(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
+    hook_attrmap = {
+        "HookItem/HookDescription": "hook_description",
+        "HookItem/HookedFunction": "hooked_function",
+        "HookItem/HookedModule": "hooked_module",
+        "HookItem/HookingAddress": "hooking_address",
+        "HookItem/HookingModule": "hooking_module"
+    }
 
-    if valueset and hookobject.hasContent_():
-        hookobject.set_xsi_type('WinKernelHookObj:WindowsKernelHookObjectType')
-    elif not valueset:
-        hookobject = None
-    
-    return hookobject
+    ds_attrmap = {
+        "HookItem/DigitalSignatureHooking/CertificateIssuer": "certificate_issuer",
+        "HookItem/DigitalSignatureHooking/CertificateSubject": "certificate_subject",
+        "HookItem/DigitalSignatureHooking/Description": "signature_description",
+        "HookItem/DigitalSignatureHooking/SignatureExists": "signature_exists",
+        "HookItem/DigitalSignatureHooking/SignatureVerified": "signature_verified",
+        "HookItem/DigitalSignatureHooked/CertificateIssuer": "certificate_issuer",
+        "HookItem/DigitalSignatureHooked/CertificateSubject": "certificate_subject",
+        "HookItem/DigitalSignatureHooked/Description": "signature_description",
+        "HookItem/DigitalSignatureHooked/SignatureExists": "signature_exists",
+        "HookItem/DigitalSignatureHooked/SignatureVerified": "signature_verified"
+    }
 
-def createLibraryObj(search_string, content_string, condition):  
-    #Create the library object
-    libobj = libraryobj.LibraryObjectType()
+    if search_string in ds_attrmap:
+        set_field(ds, ds_attrmap[search_string], content_string, condition)
 
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
+        if "DigitalSignatureHooking" in search_string:
+            hook.digital_signature_hooking = ds
+        else:
+            hook.digital_signature_hooked = ds
+    elif search_string in hook_attrmap:
+        set_field(hook, hook_attrmap[search_string], content_string, condition)
+    else:
+        return None
 
-    if search_string == "ModuleItem/ModuleAddress":
-        valueset = False
-    elif search_string == "ModuleItem/ModuleBase":
-        libobj.set_Base_Address(common.HexBinaryObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "ModuleItem/ModuleInit":
-        valueset = False
-    elif search_string == "ModuleItem/ModuleName":
-        libobj.set_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "ModuleItem/ModulePath":
-        libobj.set_Path(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "ModuleItem/ModuleSize":
-        libobj.set_Size(common.UnsignedLongObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
+    return hook
 
-    if valueset and libobj.hasContent_():
-        libobj.set_xsi_type('LibraryObj:LibraryObjectType')
-    elif not valueset:
-        libobj = None
+def create_library_obj(search_string, content_string, condition):
+    from cybox.objects.library_object import Library
 
-    return libobj
+    attrmap = {
+        "ModuleItem/ModuleBase": "base_address",
+        "ModuleItem/ModuleName": "name",
+        "ModuleItem/ModulePath": "path",
+        "ModuleItem/ModuleSize": "size"
+    }
+
+    library = Library()
+
+    if search_string in attrmap:
+        set_field(library, attrmap[search_string], content_string, condition)
+    else:
+        return None
+
+    return library
 
 def createNetConnectionObj(search_string, content_string, condition):
     #Create the network connection object
