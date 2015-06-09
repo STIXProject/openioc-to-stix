@@ -7,6 +7,7 @@ import logging
 import collections
 
 # external utilities
+import cybox
 from cybox import utils
 from cybox.common.properties import String
 
@@ -52,17 +53,37 @@ import cybox.bindings.win_user_account_object as winuseraccountobj
 import cybox.bindings.win_volume_object as winvolumeobj
 
 
+from cybox.common.properties import _LongBase, _IntegerBase, _FloatBase
+
+
+
 # Module logger
 LOG = logging.getLogger(__name__)
 
+NUMERIC_FIELD_BASES = (_FloatBase, _IntegerBase, _LongBase)
 
-def sanitize(content_string):
+
+def is_numeric(obj, attrname):
+    klass = obj.__class__
+
+    field = getattr(klass, attrname)
+    field_type = field.type_
+
+    if not field_type:
+        return False
+
+    return any(issubclass(field_type, base) for base in NUMERIC_FIELD_BASES)
+
+
+def sanitize(string):
     chars = ('<', '>', "'", '"', '&')
 
-    if any(c in content_string for c in chars):
-        return utils.wrap_cdata(content_string)
+    if not isinstance(string, basestring):
+        return string
+    elif any(c in string for c in chars):
+        return utils.wrap_cdata(string)
     else:
-        return content_string
+        return string
 
 
 def create_object(search_string, content_string, condition):
@@ -104,21 +125,42 @@ def create_object(search_string, content_string, condition):
     return retval
 
 
+def _set_field(obj, attrname, value, condition=None):
+    if not hasattr(obj, attrname):
+        raise ValueError("Object has no attribute: %s" % attrname)
+
+    setattr(obj, attrname, sanitize(value))
+    attr = getattr(obj, attrname)
+
+    if condition:
+        attr.condition = condition
+
+    return attr
+
+
+
+
 def set_field(obj, attrname, value, condition=None):
-    # Set the attribute value
-    attr = getattr(obj, attrname)
+    list_or_range = ('[', ' TO ')
 
-    if callable(attr):
-        attr(value)
-    else:
-        setattr(obj, attrname, sanitize(value))
+    if not isinstance(value, basestring):
+        return _set_field(obj, attrname, value, condition)
 
-    if not condition:
-        return
+    # Check if this is a list or a range. If not, just set the value and return.
+    if not any(s in value for s in list_or_range):
+        return _set_field(obj, attrname, value, condition)
 
-    # Set the condition
-    attr = getattr(obj, attrname)
-    attr.condition = condition
+    # The value was a list or range.
+    stripped  = value.strip('[]')
+    valuelist = stripped.split(' TO ')
+    field     = _set_field(obj, attrname, valuelist, "InclusiveBetween")
+
+    if condition in ('Contains', 'Equals'):
+        field.apply_condition = "ANY"
+    elif condition in ("DoesNotContain", "DoesNotEqual"):
+        field.apply_condition = "NONE"
+
+    return field
 
 
 def has_content(object):
@@ -455,7 +497,8 @@ def create_library_obj(search_string, content_string, condition):
 
     return library
 
-def createNetConnectionObj(search_string, content_string, condition):
+
+def create_network_connection_obj(search_string, content_string, condition):
     from cybox.objects.socket_address_object import SocketAddress
     from cybox.objects.network_connection_object import (
         NetworkConnection, Layer7Connections
@@ -501,8 +544,8 @@ def createNetConnectionObj(search_string, content_string, condition):
         header.parsed_header = header_fields
         set_field(host, "domain", content_string, condition)
     elif search_string == "Network/HTTP_Referer":
-        header.parsed_header = header_fields
         set_field(header_fields, "referer", content_string, condition)
+        header.parsed_header = header_fields
     elif search_string == "Network/String":
         set_field(header, "raw_header", content_string, condition)
     elif search_string == "Network/URI":
@@ -518,12 +561,45 @@ def createNetConnectionObj(search_string, content_string, condition):
 
     return net
     
-def createNetRouteObj(search_string, content_string, condition):  
+def createNetRouteObj(search_string, content_string, condition):
+    from cybox.objects.network_route_entry_object import NetworkRouteEntry
+    from cybox.objects.address_object import Address
+
     #Create the network route entry object
     netrtobj = networkreouteentryobj.NetworkRouteEntryObjectType()
 
     #Assume the IOC indicator value can be mapped to a CybOx type
     valueset = True
+
+    net  = NetworkRouteEntry()
+    addr = Address()
+
+    addr_keys = {
+        "RouteEntryItem/Destination",
+        "RouteEntryItem/Gateway",
+        "RouteEntryItem/Netmask"
+    }
+
+    attr_map = {
+        "RouteEntryItem/Destination": "destination_address",
+        "RouteEntryItem/Gateway": "gateway_address",
+        "RouteEntryItem/Interface": "interface",
+        "RouteEntryItem/IsIPv6": "is_ipv6",
+        "RouteEntryItem/Metric": "metric",
+        "RouteEntryItem/Netmask": "netmask",
+        "RouteEntryItem/Protocol": "protocol",
+        "RouteEntryItem/RouteAge": "route_age",
+        "RouteEntryItem/RouteType": "route_type"
+    }
+
+    if search_string in addr_keys:
+        set_field(addr, "address_value", content_string, condition)
+        set_field(net, attr_map[search_string], addr)
+    elif search_string in attr_map:
+        set_field(net, attr_map[search_string], content_string, condition)
+    else:
+        return None
+
 
     if search_string == "RouteEntryItem/Destination":
         destination_address = addressobj.AddressObjectType(category='ipv4-addr')
@@ -2014,19 +2090,5 @@ def createWinProcessObj(search_string, content_string, condition):
 
 #Set the correct attributes for any range values
 
-def process_numerical_value(object_attribute, content_string, condition):
-    if content_string.count('[') > 0 or content_string.count(' TO ') > 0:
-        normalized_string = content_string.strip('[]')
-        split_string = normalized_string.split(' TO ')
-        object_attribute.set_condition('InclusiveBetween')
-        object_attribute.set_valueOf_(split_string[0] + '##comma##' + split_string[1])
-        if condition == 'Contains' or condition == 'Equals':         
-            object_attribute.set_apply_condition('ANY')
-        elif condition == 'DoesNotContain' or condition == 'DoesNotEqual':
-            object_attribute.set_apply_condition('NONE')
-    else:
-        object_attribute.set_condition(condition)
-        object_attribute.set_valueOf_(content_string)
-    return object_attribute
 
 #Encase any strings with XML escape characters in the proper tags
