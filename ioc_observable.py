@@ -138,22 +138,18 @@ def _set_field(obj, attrname, value, condition=None):
     return attr
 
 
-
-
-def set_field(obj, attrname, value, condition=None):
-    list_or_range = ('[', ' TO ')
-
-    if not isinstance(value, basestring):
-        return _set_field(obj, attrname, value, condition)
-
-    # Check if this is a list or a range. If not, just set the value and return.
-    if not any(s in value for s in list_or_range):
-        return _set_field(obj, attrname, value, condition)
-
-    # The value was a list or range.
+def _set_numeric_field(obj, attrname, value, condition=None):
+    # Remove any braces if they exist (sometimes they do)
     stripped  = value.strip('[]')
-    valuelist = stripped.split(' TO ')
-    field     = _set_field(obj, attrname, valuelist, "InclusiveBetween")
+
+    # Split on ' TO ', which can be used in Indicators to designate ranges.
+    values    = stripped.split(' TO ')
+
+    if len(values) == 1:
+        return _set_field(obj, attrname, values[0], condition)
+
+    # ' TO ' found. This is a range.
+    field = _set_field(obj, attrname, values, "InclusiveBetween")
 
     if condition in ('Contains', 'Equals'):
         field.apply_condition = "ANY"
@@ -161,6 +157,13 @@ def set_field(obj, attrname, value, condition=None):
         field.apply_condition = "NONE"
 
     return field
+
+
+def set_field(obj, attrname, value, condition=None):
+    if is_numeric(obj, attrname):
+        return _set_numeric_field(obj, attrname, value, condition)
+    else:
+        return _set_field(obj, attrname, value, condition)
 
 
 def has_content(object):
@@ -537,7 +540,7 @@ def create_network_connection_obj(search_string, content_string, condition):
     if search_string in socket_attrmap:
         socket_field, net_field = socket_attrmap[search_string]
         set_field(socketaddr, socket_field, content_string, condition)
-        set_field(net, net_field, socketaddr, condition)
+        set_field(net, net_field, socketaddr)
     elif search_string == "Network/DNS":
         host = HostField()
         header_fields.host = host
@@ -561,18 +564,12 @@ def create_network_connection_obj(search_string, content_string, condition):
 
     return net
     
-def createNetRouteObj(search_string, content_string, condition):
+def create_net_route_obj(search_string, content_string, condition):
     from cybox.objects.network_route_entry_object import NetworkRouteEntry
     from cybox.objects.address_object import Address
 
-    #Create the network route entry object
-    netrtobj = networkreouteentryobj.NetworkRouteEntryObjectType()
-
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
-
     net  = NetworkRouteEntry()
-    addr = Address()
+    addr = Address(category=Address.CAT_IPV4)
 
     addr_keys = {
         "RouteEntryItem/Destination",
@@ -600,206 +597,131 @@ def createNetRouteObj(search_string, content_string, condition):
     else:
         return None
 
+    return net
 
-    if search_string == "RouteEntryItem/Destination":
-        destination_address = addressobj.AddressObjectType(category='ipv4-addr')
-        destination_address.set_Address_Value(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        netrtobj.set_Destination_Address(destination_address)
-    elif search_string == "RouteEntryItem/Gateway":
-        gateway_address = addressobj.AddressObjectType(category='ipv4-addr')
-        gateway_address.set_Address_Value(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        netrtobj.set_Gateway_Address(gateway_address)
-    elif search_string == "RouteEntryItem/Interface":
-        netrtobj.set_Interface(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "RouteEntryItem/IsIPv6":
-        netrtobj.set_is_ipv6(content_string)
-    elif search_string == "RouteEntryItem/Metric":
-        netrtobj.set_Metric(process_numerical_value(common.UnsignedLongObjectPropertyType(datatype=None), content_string, condition))
-    elif search_string == "RouteEntryItem/Netmask":
-        netmask = addressobj.AddressObjectType(category='ipv4-addr')
-        netmask.set_Address_Value(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        netrtobj.set_Netmask(netmask)
-    elif search_string == "RouteEntryItem/Protocol":
-        netrtobj.set_Protocol(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "RouteEntryItem/RouteAge":
-        netrtobj.set_Route_Age(common.DurationObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-    elif search_string == "RouteEntryItem/RouteType":
-        netrtobj.set_Type(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        
-    if valueset and netrtobj.hasContent_():
-        netrtobj.set_xsi_type('NetworkRouteEntryObj:NetworkRouteEntryObjectType')
-    elif not valueset:
-        netrtobj = None
 
-    return netrtobj
+def create_port_obj(search_string, content_string, condition):
+    from cybox.objects.port_object import Port
 
-def createPortObj(search_string, content_string, condition):
-    #Create the port object
-    portobject = portobj.PortObjectType()
+    port = Port()
 
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
+    netconn_keys = (
+        "PortItem/CreationTime",
+        "PortItem/localIP",
+        "PortItem/remoteIP"
+        "PortItem/localPort",
+        "PortItem/remotePort",
+    )
 
-    if search_string == "PortItem/CreationTime":
-        return createNetConnectionObj(search_string, content_string, condition)
-    elif search_string == "PortItem/localIP":
-        return createNetConnectionObj(search_string, content_string, condition)
-    elif search_string == "PortItem/localPort" or search_string == "PortItem/remotePort":
-        return createNetConnectionObj(search_string, content_string, condition)
-    elif search_string == "PortItem/path":
-        valueset = False
-    elif search_string == "PortItem/pid":
-        valueset = False
-    elif search_string == "PortItem/process":
-        valueset = False
+    if search_string in netconn_keys:
+        return create_network_connection_obj(search_string, content_string, condition)
     elif search_string == "PortItem/protocol":
-        protocol = portobj.Layer4ProtocolType()
-        protocol.set_datatype('string')
-        protocol.set_valueOf_(sanitize(content_string))
-        portobject.set_Layer4_Protocol(protocol)
-    elif search_string == "PortItem/remoteIP":
-        return createNetConnectionObj(search_string, content_string, condition)
-    elif search_string == "PortItem/state":
-        valueset = False
+        set_field(port, "protocol", content_string, condition)
+    else:
+        return None
 
-    if valueset and portobject.hasContent_():
-        portobject.set_xsi_type('PortObj:PortObjectType')
-    elif not valueset:
-        portobject = None
-    
-    return portobject
+    return port
 
-def createPrefetchObj(search_string, content_string, condition):
-    #Create the port object
-    prefetchobject = winprefetchobj.WindowsPrefetchObjectType()
+def create_prefetch_obj(search_string, content_string, condition):
+    from cybox.common.properties import String
+    from cybox.objects.win_volume_object import WinVolume
+    from cybox.objects.win_prefetch_object import WinPrefetch, AccessedFileList
 
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
+    prefected_attrmap = {
+        "PrefetchItem/ApplicationFileName": "application_file_name",
+        "PrefetchItem/LastRun": "last_run",
+        "PrefetchItem/PrefetchHash": "prefetch_hash",
+        "PrefetchItem/TimesExecuted": "times_executed",
+    }
 
-    if search_string == "PrefetchItem/AccessedFileList/AccessedFile":
-        filelisttype = winprefetchobj.AccessedFileListType()
-        filelisttype.add_Accessed_Filename(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        prefetchobject.set_Accessed_File_List(filelisttype)
-    elif search_string == "PrefetchItem/ApplicationFileName":
-        prefetchobject.set_Application_File_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "PrefetchItem/ApplicationFullPath":
-        valueset = False
-    elif search_string == "PrefetchItem/Created":
-        valueset = False
-    elif search_string == "PrefetchItem/FullPath":
-        valueset = False
-    elif search_string == "PrefetchItem/LastRun":
-        prefetchobject.set_Last_Run(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "PrefetchItem/PrefetchHash":
-        prefetchobject.set_Prefetch_Hash(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "PrefetchItem/VolumeList/VolumeItem/DevicePath":
-        volume = winvolumeobj.WindowsVolumeObjectType()
-        volume.set_Device_Path(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        prefetchobject.set_Volume(volume)
-    elif search_string == "PrefetchItem/VolumeList/VolumeItem/CreationTime":
-        volume = winvolumeobj.WindowsVolumeObjectType()
-        volume.set_Creation_Time(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        prefetchobject.set_Volume(volume)
-    elif search_string == "PrefetchItem/VolumeList/VolumeItem/SerialNumber":
-        volume = winvolumeobj.WindowsVolumeObjectType()
-        volume.set_Serial_Number(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        prefetchobject.set_Volume(volume)
-    elif search_string == "PrefetchItem/ReportedSizeInBytes":
-        valueset = False
-    elif search_string == "PrefetchItem/SizeInBytes":
-        valueset = False
-    elif search_string == "PrefetchItem/TimesExecuted":
-        prefetchobject.set_Times_Executed(common.LongObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
+    volume_attrmap = {
+        "PrefetchItem/VolumeList/VolumeItem/DevicePath": "device_path",
+        "PrefetchItem/VolumeList/VolumeItem/CreationTime": "creation_time",
+        "PrefetchItem/VolumeList/VolumeItem/SerialNumber": "serial_number"
+    }
 
-    if valueset and prefetchobject.hasContent_():
-        prefetchobject.set_xsi_type('PortObj:PortObjectType')
-    elif not valueset:
-        prefetchobject = None
-    
-    return prefetchobject
+    prefetch = WinPrefetch()
+    volume = WinVolume()
 
-def createProcessObj(search_string, content_string, condition):
-    #Create the process object
-    procobj = processobj.ProcessObjectType()
+    if search_string in prefected_attrmap:
+        set_field(prefetch, prefected_attrmap[search_string], content_string, condition)
+    elif search_string in volume_attrmap:
+        set_field(volume, volume_attrmap[search_string], content_string, condition)
+        prefetch.volume = volume
+    elif search_string == "PrefetchItem/AccessedFileList/AccessedFile":
+        s = String(sanitize(content_string))
+        s.condition = condition
+        prefetch.accessed_file_list = AccessedFileList(s)
+    else:
+        return None
 
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
+    return prefetch
 
-    if search_string.count("HandleList") > 0:
-        return createWinProcessObj(search_string, content_string, condition)
-    elif search_string == "ProcessItem/PortList/PortItem/CreationTime":
-        return createNetConnectionObj(search_string, content_string, condition)
-    elif search_string == "ProcessItem/PortList/PortItem/localIP":
-        return createNetConnectionObj(search_string, content_string, condition)
-    elif search_string == "ProcessItem/PortList/PortItem/localPort" or search_string == "ProcessItem/PortList/PortItem/remotePort":
-        portlist = processobj.PortListType()
-        port = portobj.PortObjectType()
-        port.set_Port_Value(process_numerical_value(common.PositiveIntegerObjectPropertyType(datatype=None), content_string, condition))
-        portlist.add_Port(port)
-        procobj.set_Port_List(portlist)
-    elif search_string == "ProcessItem/PortList/PortItem/path":
-        valueset = False
-    elif search_string == "ProcessItem/PortList/PortItem/pid":
-        valueset = False
-    elif search_string == "ProcessItem/PortList/PortItem/process":
-        valueset = False
-    elif search_string == "ProcessItem/PortList/PortItem/protocol":
-        portlist = processobj.PortListType()
-        port = portobj.PortObjectType()
-        port.set_Layer4_Protocol(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        portlist.add_Port(port)
-        procobj.set_Port_List(portlist)
-    elif search_string == "ProcessItem/PortList/PortItem/remoteIP":
-        return createNetConnectionObj(search_string, content_string, condition)
-    elif search_string == "ProcessItem/PortList/PortItem/state":
-        valueset = False
-    elif search_string.count("SectionList") > 0:
-        return createWinProcessObj(search_string, content_string, condition)
-    elif search_string == "ProcessItem/SecurityID":
-        return createWinProcessObj(search_string, content_string, condition)
-    elif search_string == "ProcessItem/SecurityType":
-        return createWinProcessObj(search_string, content_string, condition)
+def create_process_obj(search_string, content_string, condition):
+    from cybox.common import ExtractedFeatures, ExtractedString, ExtractedStrings
+    from cybox.objects.process_object import Process, PortList, ImageInfo
+    from cybox.objects.port_object import Port
+
+    proc        = Process()
+    port        = Port()
+    image       = ImageInfo()
+    exfeatures  = ExtractedFeatures()
+
+    proc_attrmap = {
+        "ProcessItem/Username": "username",
+        "ProcessItem/name": "name",
+        "ProcessItem/parentpid": "parent_pid",
+        "ProcessItem/pid": "pid",
+        "ProcessItem/startTime": "start_time",
+        "ProcessItem/userTime": "user_time",
+    }
+
+    port_attrmap = {
+        "ProcessItem/PortList/PortItem/localPort": "port_value",
+        "ProcessItem/PortList/PortItem/remotePort": "port_value",
+        "ProcessItem/PortList/PortItem/protocol": "layer4_protcol"
+    }
+
+    image_attrmap = {
+        "ProcessItem/arguments": "command_line",
+        "ProcessItem/path": "path",
+        "ServiceItem/path": "path"
+    }
+
+    netconn_keys = (
+        "ProcessItem/PortList/PortItem/CreationTime",
+        "ProcessItem/PortList/PortItem/localIP",
+        "ProcessItem/PortList/PortItem/remoteIP"
+    )
+
+    winproc_keys = (
+        "HandleList",
+        "SectionList",
+        "ProcessItem/SecurityID",
+        "ProcessItem/SecurityType"
+    )
+
+    if any(term in search_string for term in winproc_keys):
+        return create_win_process_obj(search_string, content_string, condition)
+    elif search_string in netconn_keys:
+        return create_network_connection_obj(search_string, content_string, condition)
+    elif search_string in proc_attrmap:
+        set_field(proc, proc_attrmap[search_string], content_string, condition)
+    elif search_string in port_attrmap:
+        set_field(port, port_attrmap[search_string], content_string, condition)
+        proc.port_list = PortList(port)
+    elif search_string in image_attrmap:
+        set_field(image, image_attrmap[search_string], content_string, condition)
+        proc.image_info = image
     elif search_string == "ProcessItem/StringList/string":
-        extractedfeat = common.ExtractedFeaturesType()
-        string_list = common.ExtractedStringsType()
-        string = common.ExtractedStringType()
-        string.set_String_Value(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        string_list.add_String(string)
-        extractedfeat.set_Strings(string_list)
-        procobj.set_Extracted_Features(extractedfeat)
-    elif search_string == "ProcessItem/Username":
-        procobj.set_Username(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "ProcessItem/arguments":
-        image_info = processobj.ImageInfoType()
-        image_info.set_Command_Line(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        procobj.set_Image_Info(image_info)
-    elif search_string == "ProcessItem/detectedAnomaly":
-        valueset = False
-    elif search_string == "ProcessItem/hidden":
-        procobj.set_is_hidden(content_string)
-    elif search_string == "ProcessItem/kernelTime":
-        valueset = False
-    elif search_string == "ProcessItem/name":
-        procobj.set_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "ProcessItem/parentpid":
-        procobj.set_Parent_PID(process_numerical_value(common.UnsignedIntegerObjectPropertyType(datatype=None), content_string, condition))
-    elif search_string == "ProcessItem/path" or search_string == "ServiceItem/path":
-        image_info = processobj.ImageInfoType()
-        image_info.set_Path(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        procobj.set_Image_Info(image_info)
-    elif search_string == "ProcessItem/pid":
-        procobj.set_PID(process_numerical_value(common.UnsignedIntegerObjectPropertyType(datatype=None), content_string, condition))
-    elif search_string == "ProcessItem/startTime":
-        procobj.set_Start_Time(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-    elif search_string == "ProcessItem/userTime":
-        procobj.set_User_Time(common.DurationObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
+        set_field(exfeatures, "string_value", content_string, condition)
+        exfeatures = ExtractedFeatures()
+        exfeatures.strings = ExtractedStrings(s)
+        proc.extracted_features = exfeatures
+    else:
+        return None
 
-    if valueset and procobj.hasContent_():
-        procobj.set_xsi_type('ProcessObj:ProcessObjectType')
-    elif not valueset:
-        procobj = None
-    
-    return procobj
+    return proc
 
 def createRegObj(search_string, content_string, condition): 
     #Create the registry object
