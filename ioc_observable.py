@@ -55,12 +55,11 @@ import cybox.bindings.win_volume_object as winvolumeobj
 
 from cybox.common.properties import _LongBase, _IntegerBase, _FloatBase
 
-
+# Used in set_field() method
+NUMERIC_FIELD_BASES = (_FloatBase, _IntegerBase, _LongBase)
 
 # Module logger
 LOG = logging.getLogger(__name__)
-
-NUMERIC_FIELD_BASES = (_FloatBase, _IntegerBase, _LongBase)
 
 
 def is_numeric(obj, attrname):
@@ -87,36 +86,12 @@ def sanitize(string):
 
 
 def create_object(search_string, content_string, condition):
-    retval = None
+    retval  = None
+    key     = search_string.split('/', 1)[0]
 
-    funcs = {
-        'DiskItem': create_disk_obj,
-        'DnsEntryItem': create_dns_obj,
-        'DriverItem': create_driver_obj,
-        'Email': create_email_obj,
-        'EventLogItem': createWinEventLogObj,
-        'FileItem': createFileObj,
-        'HookItem': createHookObj,
-        'ModuleItem':createLibraryObj ,
-        'Network': createNetConnectionObj,
-        'PortItem': createPortObj,
-        'PrefetchItem': createPrefetchObj,
-        'ProcessItem': createProcessObj,
-        'RegistryItem': createRegObj,
-        'RouteEntryItem': createNetRouteObj,
-        'ServiceItem': createServiceObj,
-        'SystemInfoItem': createSystemObj,
-        'SystemRestoreItem': createSystemRestoreObj,
-        'TaskItem':createWinTaskObject,
-        'UserItem': createUserObj,
-        'VolumeItem': createVolumeObj
-    }
-
-    key = search_string.split('/', 1)[0]
-
-    if key in funcs:
+    if key in OBJECT_FUNCS:
         # Get the object creation function for the key
-        makefunc = funcs[key]
+        makefunc = OBJECT_FUNCS[key]
         retval   = makefunc(search_string, content_string, condition)
 
     if retval is None:
@@ -125,11 +100,22 @@ def create_object(search_string, content_string, condition):
     return retval
 
 
-def _set_field(obj, attrname, value, condition=None):
-    if not hasattr(obj, attrname):
-        raise ValueError("Object has no attribute: %s" % attrname)
+def _assert_field(obj, attrname):
+    klass = obj.__class__
 
+    if hasattr(obj, attrname):
+        return
+
+    if hasattr(klass, attrname):
+       return
+
+    raise AttributeError("Object has no attribute: %s" % attrname)
+
+def _set_field(obj, attrname, value, condition=None):
+
+    # Set the attribute
     setattr(obj, attrname, sanitize(value))
+
     attr = getattr(obj, attrname)
 
     if condition:
@@ -160,6 +146,8 @@ def _set_numeric_field(obj, attrname, value, condition=None):
 
 
 def set_field(obj, attrname, value, condition=None):
+    _assert_field(obj, attrname)
+
     if is_numeric(obj, attrname):
         return _set_numeric_field(obj, attrname, value, condition)
     else:
@@ -723,145 +711,97 @@ def create_process_obj(search_string, content_string, condition):
 
     return proc
 
-def createRegObj(search_string, content_string, condition): 
-    #Create the registry object
-    regobj = winregistrykeyobj.WindowsRegistryKeyObjectType()
+def create_registry_obj(search_string, content_string, condition):
+    from cybox.objects.win_registry_key_object import (
+        WinRegistryKey, RegistryValue, RegistryValues
+    )
 
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
+    value = RegistryValue()
+    key   = WinRegistryKey()
 
-    if search_string == "RegistryItem/Hive":
-        regobj.set_Hive(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "RegistryItem/KeyPath":
-        regobj.set_Key(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "RegistryItem/Modified":
-        regobj.set_Modified_Time(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-    elif search_string == "RegistryItem/NumSubKeys":
-        regobj.set_Number_Subkeys(process_numerical_value(common.UnsignedIntegerObjectPropertyType(datatype=None), content_string, condition))
-    elif search_string == "RegistryItem/NumValues":
-        regobj.set_Number_Values(process_numerical_value(common.UnsignedIntegerObjectPropertyType(datatype=None), content_string, condition))
+    key_attrmap = {
+        "RegistryItem/Username": "creator_username",
+        "RegistryItem/Hive": "hive",
+        "RegistryItem/KeyPath": "key",
+        "RegistryItem/Modified": "modified_time",
+        "RegistryItem/NumSubKeys": "num_subkeys",
+        "RegistryItem/NumValues": "num_values",
+    }
+
+    value_attrmap = {
+        "RegistryItem/Text": "data",
+        "RegistryItem/Value": "data",
+         "RegistryItem/Type": "data_type",
+        "RegistryItem/ValueName": "name"
+    }
+
+    if search_string in key_attrmap:
+        set_field(key, key_attrmap[search_string], content_string, condition)
+    elif search_string in value_attrmap:
+        set_field(value, value_attrmap[search_string], content_string, condition)
+        key.values = RegistryValues(value)
     elif search_string == "RegistryItem/Path":
-        split_path = content_string.split('\\', 1)
-        if any("HKEY_" in s for s in split_path):
-            regobj.set_Hive(common.StringObjectPropertyType(datatype=None, condition='Equals', valueOf_=split_path[0]))
-            regobj.set_Key(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=split_path[1]))
+        if not content_string.startswith("HKEY_"):
+            set_field(key, "key", content_string, condition)
+        elif "\\" not in content_string:
+            set_field(key, "hive", content_string, condition)
         else:
-            regobj.set_Key(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))        
-    elif search_string == "RegistryItem/ReportedLengthInBytes":
-        valueset = False
-    elif search_string == "RegistryItem/Text" or search_string == "RegistryItem/Value":
-        values = winregistrykeyobj.RegistryValuesType()
-        value = winregistrykeyobj.RegistryValueType()
-        value.set_Data(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        values.add_Value(value)
-        regobj.set_Values(values)
-    elif search_string == "RegistryItem/Type":
-        values = winregistrykeyobj.RegistryValuesType()
-        value = winregistrykeyobj.RegistryValueType()
-        value.set_Datatype(common.StringObjectPropertyType(datatype='string', condition=condition, valueOf_=sanitize(content_string)))
-        values.add_Value(value)
-        regobj.set_Values(values)
-    elif search_string == "RegistryItem/Username":
-        regobj.set_Creator_Username(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "RegistryItem/ValueName":
-        values = winregistrykeyobj.RegistryValuesType()
-        value = winregistrykeyobj.RegistryValueType()
-        value.set_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        values.add_Value(value)
-        regobj.set_Values(values)
+            hive, key = content_string.split("\\", 1)
+            set_field(key, "hive", hive, condition='Equals')
+            set_field(key, "key", key, condition)
+    else:
+        return None
 
-    if valueset and regobj.hasContent_():
-        regobj.set_xsi_type('WinRegistryKeyObj:WindowsRegistryKeyObjectType')
-    elif not valueset:
-        regobj = None
-    
-    return regobj
+    return key
 
-def createServiceObj(search_string, content_string, condition):
-    #Create the service object
-    serviceobj = winserviceobj.WindowsServiceObjectType()
+def create_service_obj(search_string, content_string, condition):
+    from cybox.objects.win_service_object import WinService, ServiceDescriptionList
+    from cybox.common.hashes import  HashList
 
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
+    hashlist = HashList()
+    service = WinService()
 
-    if search_string == "ServiceItem/arguments":
-        serviceobj.set_Startup_Command_Line(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
+    attrmap = {
+        "ServiceItem/arguments": "startup_command_line",
+        "ServiceItem/mode": "startup_type",
+        "ServiceItem/name": "service_name",
+        "ServiceItem/serviceDLL": "service_dll",
+        "ServiceItem/serviceDLLCertificateSubject": "service_dll_certificate_subject",
+        "ServiceItem/serviceDLLCertificateIssuer": "service_dll_certificate_issuer",
+        "ServiceItem/serviceDLLSignatureExists": "service_dll_signature_exists",
+        "ServiceItem/serviceDLLSignatureVerified": "service_dll_signature_verified",
+        "ServiceItem/serviceDLLSignatureDescription": "service_dll_signature_description",
+        "ServiceItem/startedAs": "started_as",
+        "ServiceItem/status": "service_status",
+        "ServiceItem/type": "service_type"
+    }
+
+    hashmap = {
+        "ServiceItem/serviceDLLmd5sum": "md5",
+        "ServiceItem/serviceDLLsha1sum": "sha1",
+        "ServiceItem/serviceDLLsha256sum": "sha256"
+    }
+
+    proc_keys = (
+        "ServiceItem/path",
+        "ServiceItem/pid"
+    )
+
+    if search_string in proc_keys:
+        return create_process_obj(search_string, content_string, condition)
+    elif search_string in attrmap:
+        set_field(service, attrmap[search_string], content_string, condition)
+    elif search_string in hashmap:
+        set_field(hashlist, hashmap[search_string], content_string, condition)
+        service.service_dll_hashes = hashlist
     elif search_string == "ServiceItem/description":
-        description_list = winserviceobj.ServiceDescriptionListType()
-        description_list.add_Description(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        serviceobj.set_Description_List(description_list)    
-    elif search_string == "ServiceItem/descriptiveName":
-        valueset = False
-    elif search_string == "ServiceItem/mode":
-        serviceobj.set_Startup_Type(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "ServiceItem/name":
-        serviceobj.set_Service_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "ServiceItem/path":
-        return createProcessObj(search_string, content_string, condition)
-    elif search_string == "ServiceItem/pathCertificateIssuer":
-        valueset = False
-    elif search_string == "ServiceItem/pathCertificateSubject":
-        valueset = False
-    elif search_string == "ServiceItem/pathSignatureDescription":
-        valueset = False
-    elif search_string == "ServiceItem/pathSignatureExists":
-        valueset = False
-    elif search_string == "ServiceItem/pathSignatureVerified":
-        valueset = False
-    elif search_string == "ServiceItem/pathmd5sum":
-        valueset = False
-    elif search_string == "ServiceItem/pathsha1sum":
-        valueset = False
-    elif search_string == "ServiceItem/pathsha256sum":
-        valueset = False
-    elif search_string == "ServiceItem/pid":
-        return createProcessObj(search_string, content_string, condition)
-    elif search_string == "ServiceItem/serviceDLL":
-        serviceobj.set_Service_DLL(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "ServiceItem/serviceDLLmd5sum":
-        service_dll_hashes = common.HashListType()
-        md5hash = common.HashType()
-        md5hash.set_Type(common.ControlledVocabularyStringType(valueOf_='MD5', xsi_type='cyboxVocabs:HashNameVocab-1.0'))
-        md5hash.set_Simple_Hash_Value(process_numerical_value(common.HexBinaryObjectPropertyType(datatype=None), content_string, condition))
-        service_dll_hashes.add_Hash(md5hash)
-        serviceobj.set_Service_DLL_Hashes(service_dll_hashes)
-    elif search_string == "ServiceItem/serviceDLLsha1sum":
-        service_dll_hashes = common.HashListType()
-        sha1hash = common.HashType()
-        sha1hash.set_Type(common.ControlledVocabularyStringType(valueOf_='SHA1', xsi_type='cyboxVocabs:HashNameVocab-1.0'))
-        sha1hash.set_Simple_Hash_Value(process_numerical_value(common.HexBinaryObjectPropertyType(datatype=None), content_string, condition))
-        service_dll_hashes.add_Hash(sha1hash)
-        serviceobj.set_Service_DLL_Hashes(service_dll_hashes)
-    elif search_string == "ServiceItem/serviceDLLsha256sum":
-        service_dll_hashes = common.HashListType()
-        sha256hash = common.HashType()
-        sha256hash.set_Type(common.ControlledVocabularyStringType(valueOf_='SHA256', xsi_type='cyboxVocabs:HashNameVocab-1.0'))
-        sha256hash.set_Simple_Hash_Value(process_numerical_value(common.HexBinaryObjectPropertyType(datatype=None), content_string, condition))
-        service_dll_hashes.add_Hash(sha256hash)
-        serviceobj.set_Service_DLL_Hashes(service_dll_hashes)
-    elif search_string == "ServiceItem/serviceDLLCertificateSubject":
-        serviceobj.set_Service_DLL_Certificate_Subject(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "ServiceItem/serviceDLLCertificateIssuer":
-        serviceobj.set_Service_DLL_Certificate_Issuer(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "ServiceItem/serviceDLLSignatureExists":
-        serviceobj.set_service_dll_signature_exists(content_string)
-    elif search_string == "ServiceItem/serviceDLLSignatureVerified":
-        serviceobj.set_service_dll_signature_verified(content_string)
-    elif search_string == "ServiceItem/serviceDLLSignatureDescription":
-        serviceobj.set_Service_DLL_Signature_Description(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "ServiceItem/startedAs":
-        serviceobj.set_Started_As(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "ServiceItem/status":
-        serviceobj.set_Service_Status(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "ServiceItem/type":
-        serviceobj.set_Service_Type(common.StringObjectPropertyType(datatype='string', condition=condition, valueOf_=sanitize(content_string)))
+        s = String(sanitize(content_string))
+        service.description_list = ServiceDescriptionList(s)
+    else:
+        return None
 
-    if valueset and serviceobj.hasContent_():
-        serviceobj.set_xsi_type('WinServiceObj:WindowsServiceObjectType')
-    elif not valueset:
-        serviceobj = None
+    return service
 
-    return serviceobj
 
 def createSystemObj(search_string, content_string, condition):
     #Create the system object
@@ -1824,45 +1764,40 @@ def createWinExecObj(search_string, content_string, condition):
     
     return winexecobj
 
-def createWinUserObj(search_string, content_string, condition):
-    #Create the win user account object
-    accountobj = winuseraccountobj.WindowsUserAccountObjectType()
+def create_win_user_obj(search_string, content_string, condition):
+    from cybox.objects.win_user_object import WinUser
 
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
+    winuser = WinUser()
+
+    attrmap = {
+        "UserItem/SecurityID": "security_id",
+        "UserItem/SecurityType": "security_type"
+    }
+
+    if search_string in attrmap:
+        set_field(winuser, attrmap[search_string], content_string, condition)
+    else:
+        return None
+
+    return winuser
+
+def create_account_obj(search_string, content_string, condition):
+    from cybox.objects.account_object import Account
+
+    account = Account()
+
+    attrmap = {
+        "UserItem/description": "description",
+        "UserItem/disabled": "disabled",
+        "UserItem/lockedout": "locked_out"
+    }
+
+    if search_string in attrmap:
+        set_field(account, attrmap[search_string], content_string, condition)
+    else:
+        return None
     
-    if search_string == "UserItem/SecurityID":
-        accountobj.set_Security_ID(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "UserItem/SecurityType":
-        accountobj.set_Security_Type(common.StringObjectPropertyType(datatype='string', condition=condition, valueOf_=sanitize(content_string)))
-
-    if valueset and accountobj.hasContent_():
-        accountobj.set_xsi_type('WinUserAccountObj:WindowsUserAccountObjectType')
-    elif not valueset:
-        accountobj = None
-    
-    return accountobj
-
-def createAccountObj(search_string, content_string, condition):
-    #Create the account object
-    acctobj = accountobj.AccountObjectType()
-
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
-
-    if search_string == "UserItem/description":
-        acctobj.set_Description(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "UserItem/disabled":
-        acctobj.set_disabled(content_string)
-    elif search_string == "UserItem/lockedout":
-        acctobj.set_locked_out(content_string)
-
-    if valueset and acctobj.hasContent_():
-        acctobj.set_xsi_type('AccountObj:AccountObjectType')
-    elif not valueset:
-        acctobj = None
-    
-    return acctobj
+    return account
  
 def createWinMemoryPageObj(search_string, content_string, condition):
     #Create the windows memory page region object
@@ -2009,6 +1944,29 @@ def createWinProcessObj(search_string, content_string, condition):
 
     return winprocobj
 
+
+OBJECT_FUNCS = {
+    'DiskItem': create_disk_obj,
+    'DnsEntryItem': create_dns_obj,
+    'DriverItem': create_driver_obj,
+    'Email': create_email_obj,
+    'EventLogItem': create_win_event_log_obj,
+    'FileItem': create_file_obj,
+    'HookItem': create_hook_obj,
+    'ModuleItem': create_library_obj ,
+    'Network': create_network_connection_obj,
+    'PortItem': create_port_obj,
+    'PrefetchItem': create_prefetch_obj,
+    'ProcessItem': create_process_obj,
+    'RegistryItem': createRegObj,
+    'RouteEntryItem': create_net_route_obj,
+    'ServiceItem': createServiceObj,
+    'SystemInfoItem': createSystemObj,
+    'SystemRestoreItem': createSystemRestoreObj,
+    'TaskItem':createWinTaskObject,
+    'UserItem': createUserObj,
+    'VolumeItem': createVolumeObj
+}
 
 #Set the correct attributes for any range values
 
