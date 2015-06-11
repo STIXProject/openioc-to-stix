@@ -62,6 +62,12 @@ NUMERIC_FIELD_BASES = (_FloatBase, _IntegerBase, _LongBase)
 LOG = logging.getLogger(__name__)
 
 
+def partial_match(dict_, key):
+    for k, v in dict_.iteritems():
+        if k in key:
+            return v
+
+
 def is_numeric(obj, attrname):
     klass = obj.__class__
 
@@ -1017,7 +1023,7 @@ def create_win_system_obj(search_string, content_string, condition):
 
     return winsys
 
-def createWinTaskObject(search_string, content_string, condition):
+def create_win_task_obj(search_string, content_string, condition):
     from cybox.objects.win_task_object import (
         WinTask, TaskAction, TaskActionList, IComHandlerAction,
         IExecAction, Trigger, TriggerList, IShowMessageAction
@@ -1136,93 +1142,116 @@ def create_unix_file_obj(search_string, content_string, condition):
     pass
 
 
-def createWinFileObj(search_string, content_string, condition):
-    #Create the windows file object
-    fileobj = winfileobj.WindowsFileObjectType()
+def create_win_file_obj(search_string, content_string, condition):
+    from cybox.objects.win_file_object import (
+        WinFile, WindowsFileAttribute, WindowsFileAttributes, Stream, StreamList
+    )
 
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
-        
-    if search_string == "FileItem/Drive": 
-        fileobj.set_Drive(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
+    attrmap = {
+        "FileItem/Drive": "drive",
+        "FileItem/FilenameAccessed": "filename_accessed_time",
+        "FileItem/FilenameCreated": "filename_created_time",
+        "FileItem/FilenameModified": "filename_modified_time",
+        "FileItem/SecurityID": "security_id",
+        "FileItem/SecurityType": "security_type",
+        "FileItem/StreamList/Stream/Md5sum": "md5",
+        "FileItem/StreamList/Stream/Sha1sum": "sha1",
+        "FileItem/StreamList/Stream/Sha256sum": "sha256"
+    }
+
+    stream_attrmap = {
+        "FileItem/StreamList/Stream/Name": "name",
+        "FileItem/StreamList/Stream/SizeInBytes": "size_in_bytes"
+    }
+
+    file_ = WinFile()
+    stream = Stream()
+    streams = StreamList(stream)
+
+    if search_string in attrmap:
+        set_field(file_, attrmap[search_string], content_string, condition)
+    if search_string in stream_attrmap:
+        set_field(stream, stream_attrmap[search_string], content_string, condition)
+        file_.stream_list = streams
     elif search_string == "FileItem/FileAttributes":
-        fileattlist = winfileobj.WindowsFileAttributesType()
-        fileatt = winfileobj.WindowsFileAttributeType()
-        fileatt.set_valueOf_(sanitize(content_string))
-        fileattlist.add_Attribute(fileatt)
-        fileobj.set_File_Attributes_List(fileattlist)
-    elif search_string == "FileItem/FilenameAccessed": 
-        fileobj.set_Filename_Accessed_Time(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-    elif search_string == "FileItem/FilenameCreated": 
-        fileobj.set_Filename_Created_Time(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-    elif search_string == "FileItem/FilenameModified": 
-        fileobj.set_Filename_Modified_Time(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-    elif search_string == "FileItem/SecurityID":
-        fileobj.set_Security_ID(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "FileItem/SecurityType":
-        fileobj.set_Security_Type(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "FileItem/StreamList/Stream/Md5sum":
-        stream_list = winfileobj.StreamListType()
-        stream = winfileobj.StreamObjectType()
-        md5hash = common.HashType()
-        md5hash.set_Type(common.ControlledVocabularyStringType(valueOf_='MD5', xsi_type='cyboxVocabs:HashNameVocab-1.0'))
-        md5hash.set_Simple_Hash_Value(process_numerical_value(common.HexBinaryObjectPropertyType(datatype=None), content_string, condition))
-        stream.add_Hash(md5hash)
-        stream_list.add_Stream(stream)
-        fileobj.set_Stream_List(stream_list)
-    elif search_string == "FileItem/StreamList/Stream/Name":
-        stream_list = winfileobj.StreamListType()
-        stream = winfileobj.StreamObjectType()
-        stream.set_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        stream_list.add_Stream(stream)
-        fileobj.set_Stream_List(stream_list)
-    elif search_string == "FileItem/StreamList/Stream/Sha1sum":
-        stream_list = winfileobj.StreamListType()
-        stream = winfileobj.StreamObjectType()
-        sha1hash = common.HashType()
-        sha1hash.set_Type(common.ControlledVocabularyStringType(valueOf_='SHA1', xsi_type='cyboxVocabs:HashNameVocab-1.0'))
-        sha1hash.set_Simple_Hash_Value(process_numerical_value(common.HexBinaryObjectPropertyType(datatype=None), content_string, condition))
-        stream.add_Hash(sha1hash)
-        stream_list.add_Stream(stream)
-        fileobj.set_Stream_List(stream_list)
-    elif search_string == "FileItem/StreamList/Stream/Sha256sum":
-        stream_list = winfileobj.StreamListType()
-        stream = winfileobj.StreamObjectType()
-        sha256hash = common.HashType()
-        sha256hash.set_Type(common.ControlledVocabularyStringType(valueOf_='SHA256', xsi_type='cyboxVocabs:HashNameVocab-1.0'))
-        sha256hash.set_Simple_Hash_Value(process_numerical_value(common.HexBinaryObjectPropertyType(datatype=None), content_string, condition))
-        stream.add_Hash(sha256hash)
-        stream_list.add_Stream(stream)
-        fileobj.set_Stream_List(stream_list)
-    elif search_string == "FileItem/StreamList/Stream/SizeInBytes":
-        stream_list = winfileobj.StreamListType()
-        stream = winfileobj.StreamObjectType()
-        stream.set_Size_In_Bytes(process_numerical_value(common.UnsignedLongObjectPropertyType(datatype=None), content_string, condition))
-        stream_list.add_Stream(stream)
-        fileobj.set_Stream_List(stream_list)
+        attr = WindowsFileAttribute(content_string)
+        attr.condition = condition
+        file_.file_attributes_list = WindowsFileAttributes(attr)
+    else:
+        return None
 
-    if valueset and fileobj.hasContent_():
-        fileobj.set_xsi_type('WinFileObj:WindowsFileObjectType')
-    elif not valueset:
-        fileobj = None
-    
-    return fileobj
+    return file_
 
-def createWinExecObj(search_string, content_string, condition):
-    #Create the windows executable file object
-    winexecobj = winexecutablefileobj.WindowsExecutableFileObjectType()
+def create_pefile_obj(search_string, content_string, condition):
+    from cybox.common import DigitalSignature
+    from cybox.objects.win_executable_file_object import (
+        WinExecutableFile, PEVersionInfoResource, PEResource, PEResourceList,
+        PEChecksum
+    )
 
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
+    ds_attrmap = {
+        "/PEInfo/DigitalSignature/CertificateIssuer": "certificate_issuer",
+        "/PEInfo/DigitalSignature/CertificateSubject": "certificate_subject",
+        "/PEInfo/DigitalSignature/Description": "certificate_description",
+        "/PEInfo/DigitalSignature/SignatureExists": "signature_exists",
+        "/PEInfo/DigitalSignature/SignatureVerified": "signature_verified"
+    }
 
-    if search_string == "FileItem/PEInfo/BaseAddress" or search_string == "DriverItem/PEInfo/BaseAddress":
+    verinfo_attrmap = {
+        "FileItem/PEInfo/VersionInfoList/VersionInfoItem/Comments": "comments",
+        "FileItem/PEInfo/VersionInfoList/VersionInfoItem/CompanyName": "companyname",
+        "FileItem/PEInfo/VersionInfoList/VersionInfoItem/FileDescription": "filedescription",
+        "FileItem/PEInfo/VersionInfoList/VersionInfoItem/FileVersion": "fileversion",
+        "FileItem/PEInfo/VersionInfoList/VersionInfoItem/InternalName": "internalname",
+        "FileItem/PEInfo/VersionInfoList/VersionInfoItem/Language": "language",
+        "FileItem/PEInfo/VersionInfoList/VersionInfoItem/LegalCopyright": "legalcopyright",
+        "FileItem/PEInfo/VersionInfoList/VersionInfoItem/LegalTrademarks": "legaltrademarks",
+        "FileItem/PEInfo/VersionInfoList/VersionInfoItem/OriginalFilename": "originalfilename",
+        "FileItem/PEInfo/VersionInfoList/VersionInfoItem/PrivateBuild": "privatebuild",
+        "FileItem/PEInfo/VersionInfoList/VersionInfoItem/ProductName": "productname",
+        "FileItem/PEInfo/VersionInfoList/VersionInfoItem/ProductVersion": "productversion",
+        "FileItem/PEInfo/VersionInfoList/VersionInfoItem/SpecialBuild": "specialbuild"
+    }
+
+    resource_attrmap = {
+        "FileItem/PEInfo/ResourceInfoList/ResourceInfoItem/Name": "name",
+        "FileItem/PEInfo/ResourceInfoList/ResourceInfoItem/Type": "type_"
+    }
+
+    checksum_attrmap = {
+        "/PEInfo/PEChecksum/PEComputedAPI": "pe_computed_api",
+        "/PEInfo/PEChecksum/PEFileAPI": "pe_file_api",
+        "/PEInfo/PEChecksum/PEFileRaw": "pe_file_raw"
+    }
+
+    winexec = WinExecutableFile()
+    ds = DigitalSignature()
+    verinfo = PEVersionInfoResource()
+    verinforesources = PEResourceList(verinfo)
+    resource = PEResource()
+    resources = PEResourceList(resource)
+    checksum = PEChecksum()
+
+    if any(k in search_string for k in ds_attrmap):
+        attr = partial_match(ds_attrmap, search_string)
+        set_field(ds, attr, content_string, condition)
+        winexec.digital_signature = ds
+    if any(k in search_string for k in checksum_attrmap):
+        attr = partial_match(checksum_attrmap, search_string)
+        set_field(checksum, attr, content_string, condition)
+        winexec.pe_checksum = checksum
+    elif search_string in verinfo_attrmap:
+        set_field(verinfo, verinfo_attrmap[search_string], content_string, condition)
+        winexec.resources = verinforesources
+    elif search_string in resource_attrmap:
+        set_field(resource, resource_attrmap[search_string], content_string, condition)
+        winexec.resources = resources
+    elif search_string == "FileItem/PEInfo/BaseAddress" or search_string == "DriverItem/PEInfo/BaseAddress":
         pehead = winexecutablefileobj.PEHeadersType()
         opthead = winexecutablefileobj.PEOptionalHeaderType()
         opthead.set_Base_Of_Code(process_numerical_value(common.HexBinaryObjectPropertyType(datatype=None), content_string, condition))
         pehead.set_Optional_Header(opthead)
         winexecobj.set_Headers(pehead)
-    elif search_string == "FileItem/PEInfo/DetectedAnomalies/string":
-        valueset = False
     elif search_string == "FileItem/PEInfo/DetectedEntryPointSignature/Name" or search_string == "DriverItem/PEInfo/DetectedEntryPointSignature/Name":
         packerlist = fileobj.PackerListType()
         packer = fileobj.PackerType()
@@ -1243,26 +1272,6 @@ def createWinExecObj(search_string, content_string, condition):
         packer.set_Detected_Entrypoint_Signatures(epsiglist)
         packerlist.add_Packer(packer)
         winexecobj.set_Packer_List(packerlist)
-    elif search_string == "FileItem/PEInfo/DigitalSignature/CertificateIssuer" or search_string == "DriverItem/PEInfo/DigitalSignature/CertificateIssuer":
-        digital_signature = common.DigitalSignatureInfoType()
-        digital_signature.set_Certificate_Issuer(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        winexecobj.set_Digital_Signature(digital_signature)
-    elif search_string == "FileItem/PEInfo/DigitalSignature/CertificateSubject" or search_string == "DriverItem/PEInfo/DigitalSignature/CertificateSubject":
-        digital_signature = common.DigitalSignatureInfoType()
-        digital_signature.set_Certificate_Subject(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        winexecobj.set_Digital_Signature(digital_signature)
-    elif search_string == "FileItem/PEInfo/DigitalSignature/Description" or search_string == "DriverItem/PEInfo/DigitalSignature/Description":
-        digital_signature = common.DigitalSignatureInfoType()
-        digital_signature.set_Signature_Description(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        winexecobj.set_Digital_Signature(digital_signature)
-    elif search_string == "FileItem/PEInfo/DigitalSignature/SignatureExists" or search_string == "DriverItem/PEInfo/DigitalSignature/SignatureExists":
-        digital_signature = common.DigitalSignatureInfoType()
-        digital_signature.set_signature_exists(content_string)
-        winexecobj.set_Digital_Signature(digital_signature)
-    elif search_string == "FileItem/PEInfo/DigitalSignature/SignatureVerified" or search_string == "DriverItem/PEInfo/DigitalSignature/SignatureVerified":
-        digital_signature = common.DigitalSignatureInfoType()
-        digital_signature.set_signature_verified(content_string)
-        winexecobj.set_Digital_Signature(digital_signature)
     elif search_string == "FileItem/PEInfo/EpJumpCodes/Depth" or search_string == "DriverItem/PEInfo/EpJumpCodes/Depth":
         packerlist = fileobj.PackerListType()
         packer = fileobj.PackerType()
@@ -1279,8 +1288,6 @@ def createWinExecObj(search_string, content_string, condition):
         packer.set_EP_Jump_Codes(epjumpcode)
         packerlist.add_Packer(packer)
         winexecobj.set_Packer_List(packerlist)
-    elif search_string == "FileItem/PEInfo/Exports/DllName":
-        valueset = False
     elif search_string == "FileItem/PEInfo/Exports/ExportedFunctions/string" or search_string == "DriverItem/PEInfo/Exports/ExportedFunctions/string":
         exports = winexecutablefileobj.PEExportsType()
         exportfunlist = winexecutablefileobj.PEExportedFunctionsType()
@@ -1293,8 +1300,6 @@ def createWinExecObj(search_string, content_string, condition):
         exports = winexecutablefileobj.PEExportsType()
         exports.set_Exports_Time_Stamp(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
         winexecobj.set_Exports(exports)
-    elif search_string == "FileItem/PEInfo/Exports/NumberOfFunctions":
-        valueset = False
     elif search_string == "FileItem/PEInfo/Exports/NumberOfNames" or search_string == "DriverItem/PEInfo/Exports/NumberOfNames":
         exports = winexecutablefileobj.PEExportsType()
         exports.set_Number_Of_Names(process_numerical_value(common.IntegerObjectPropertyType(datatype=None), content_string, condition))
@@ -1317,16 +1322,6 @@ def createWinExecObj(search_string, content_string, condition):
         peimport.set_File_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
         imports.add_Import(peimport)
         winexecobj.set_Imports(imports)
-    elif search_string == "FileItem/PEInfo/ImportedModules/Module/NumberOfFunctions":
-        valueset = False
-    elif search_string == "FileItem/PEInfo/PEChecksum/PEComputedAPI" or search_string == "DriverItem/PEInfo/PEChecksum/PEComputedAPI":
-        checksum = winexecutablefileobj.PEChecksumType()
-        checksum.set_PE_Computed_API(process_numerical_value(common.LongObjectPropertyType(datatype=None), content_string, condition))
-        winexecobj.set_PE_Checksum(checksum)
-    elif search_string == "FileItem/PEInfo/PEChecksum/PEFileAPI" or search_string == "DriverItem/PEInfo/PEChecksum/PEFileAPI":
-        checksum = winexecutablefileobj.PEChecksumType()
-        checksum.set_PE_File_API(process_numerical_value(common.LongObjectPropertyType(datatype=None), content_string, condition))
-        winexecobj.set_PE_Checksum(checksum)
     elif search_string == "FileItem/PEInfo/PEChecksum/PEFileRaw" or search_string == "DriverItem/PEInfo/PEChecksum/PEFileRaw":
         checksum = winexecutablefileobj.PEChecksumType()
         checksum.set_PE_File_Raw(process_numerical_value(common.LongObjectPropertyType(datatype=None), content_string, condition))
@@ -1337,28 +1332,6 @@ def createWinExecObj(search_string, content_string, condition):
         fileheader.set_Time_Date_Stamp(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
         headers.set_File_Header(fileheader)
         winexecobj.set_Headers(headers)
-    elif search_string == "FileItem/PEInfo/ResourceInfoList/ResourceInfoItem/Data":
-        valueset = False
-    elif search_string == "FileItem/PEInfo/ResourceInfoList/ResourceInfoItem/Language":
-        valueset = False
-    elif search_string == "FileItem/PEInfo/ResourceInfoList/ResourceInfoItem/Name":
-        reslist = winexecutablefileobj.PEResourceListType()
-        res = winexecutablefileobj.PEResourceType()
-        res.set_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        reslist.add_Resource(res)
-        winexecobj.set_Resources(reslist)
-    elif search_string == "FileItem/PEInfo/ResourceInfoList/ResourceInfoItem/Size":
-        valueset = False
-    elif search_string == "FileItem/PEInfo/ResourceInfoList/ResourceInfoItem/Type":
-        reslist = winexecutablefileobj.PEResourceListType()
-        res = winexecutablefileobj.PEResourceType()
-        res.set_Type(sanitize(content_string))
-        reslist.add_Resource(res)
-        winexecobj.set_Resources(reslist)
-    elif search_string == "FileItem/PEInfo/Sections/NumberOfSections":
-        valueset = False
-    elif search_string == "FileItem/PEInfo/Sections/ActualNumberOfSections":
-        valueset = False
     elif search_string == "FileItem/PEInfo/Sections/Section/DetectedCharacteristics" or search_string == "DriverItem/PEInfo/Sections/Section/DetectedCharacteristics":
         seclist = winexecutablefileobj.PESectionListType()
         sec = winexecutablefileobj.PESectionType()
@@ -1367,122 +1340,10 @@ def createWinExecObj(search_string, content_string, condition):
         sec.set_Section_Header(sechdr)
         seclist.add_Section(sec)
         winexecobj.set_Sections(seclist)
-    elif search_string == "FileItem/PEInfo/Sections/Section/DetectedSignatureKeys/string":
-        valueset = False
-    elif search_string == "FileItem/PEInfo/Sections/Section/Entropy/CurveData/float":
-        valueset = False
-    elif search_string == "FileItem/PEInfo/Sections/Section/Name" or search_string == "DriverItem/PEInfo/Sections/Section/Name":
-        seclist = winexecutablefileobj.PESectionListType()
-        sec = winexecutablefileobj.PESectionType()
-        sechdr = winexecutablefileobj.PESectionHeaderStructType()
-        sechdr.set_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        sec.set_Section_Header(sechdr)
-        seclist.add_Section(sec)
-        winexecobj.set_Sections(seclist)
-    elif search_string == "FileItem/PEInfo/Sections/Section/SizeInBytes":
-        valueset = False
-    elif search_string == "FileItem/PEInfo/Sections/Section/Type" or search_string == "DriverItem/PEInfo/Sections/Section/Type":
-        seclist = winexecutablefileobj.PESectionListType()
-        sec = winexecutablefileobj.PESectionType()
-        sec.set_Type(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        seclist.add_Section(sec)
-        winexecobj.set_Sections(seclist)
-    elif search_string == "FileItem/PEInfo/Subsystem" or search_string == "DriverItem/PEInfo/Subsystem":
-        pehead = winexecutablefileobj.PEHeadersType()
-        opthead = winexecutablefileobj.PEOptionalHeaderType()
-        opthead.set_Subsystem(process_numerical_value(common.HexBinaryObjectPropertyType(datatype=None), content_string, condition))
-        pehead.set_Optional_Header(opthead)
-        winexecobj.set_Headers(pehead)
-    elif search_string == "FileItem/PEInfo/Type" or search_string == "DriverItem/PEInfo/Type":
-        petype = winexecutablefileobj.PEType()
-        petype.set_valueOf_(sanitize(content_string))
-        petype.set_datatype('string')
-        winexecobj.set_Type(petype)
-    elif search_string == "FileItem/PEInfo/VersionInfoList/VersionInfoItem/Comments":
-        reslist = winexecutablefileobj.PEResourceListType()
-        verres = winexecutablefileobj.PEVersionInfoResourceType()
-        verres.set_Comments(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        reslist.add_Resource(verres)
-        winexecobj.set_Resources(reslist)
-    elif search_string == "FileItem/PEInfo/VersionInfoList/VersionInfoItem/CompanyName":
-        reslist = winexecutablefileobj.PEResourceListType()
-        verres = winexecutablefileobj.PEVersionInfoResourceType()
-        verres.set_CompanyName(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        reslist.add_Resource(verres)
-        winexecobj.set_Resources(reslist)
-    elif search_string == "FileItem/PEInfo/VersionInfoList/VersionInfoItem/FileDescription":
-        reslist = winexecutablefileobj.PEResourceListType()
-        verres = winexecutablefileobj.PEVersionInfoResourceType()
-        verres.set_FileDescription(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        reslist.add_Resource(verres)
-        winexecobj.set_Resources(reslist)
-    elif search_string == "FileItem/PEInfo/VersionInfoList/VersionInfoItem/FileVersion":
-        reslist = winexecutablefileobj.PEResourceListType()
-        verres = winexecutablefileobj.PEVersionInfoResourceType()
-        verres.set_FileVersion(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        reslist.add_Resource(verres)
-        winexecobj.set_Resources(reslist)
-    elif search_string == "FileItem/PEInfo/VersionInfoList/VersionInfoItem/InternalName":
-        reslist = winexecutablefileobj.PEResourceListType()
-        verres = winexecutablefileobj.PEVersionInfoResourceType()
-        verres.set_InternalName(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        reslist.add_Resource(verres)
-        winexecobj.set_Resources(reslist)
-    elif search_string == "FileItem/PEInfo/VersionInfoList/VersionInfoItem/Language":
-        reslist = winexecutablefileobj.PEResourceListType()
-        verres = winexecutablefileobj.PEVersionInfoResourceType()
-        verres.set_LangID(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        reslist.add_Resource(verres)
-        winexecobj.set_Resources(reslist)
-    elif search_string == "FileItem/PEInfo/VersionInfoList/VersionInfoItem/LegalCopyright":
-        reslist = winexecutablefileobj.PEResourceListType()
-        verres = winexecutablefileobj.PEVersionInfoResourceType()
-        verres.set_LegalCopyright(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        reslist.add_Resource(verres)
-        winexecobj.set_Resources(reslist)
-    elif search_string == "FileItem/PEInfo/VersionInfoList/VersionInfoItem/LegalTrademarks":
-        reslist = winexecutablefileobj.PEResourceListType()
-        verres = winexecutablefileobj.PEVersionInfoResourceType()
-        verres.set_LegalTrademarks(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        reslist.add_Resource(verres)
-        winexecobj.set_Resources(reslist)
-    elif search_string == "FileItem/PEInfo/VersionInfoList/VersionInfoItem/OriginalFilename":
-        reslist = winexecutablefileobj.PEResourceListType()
-        verres = winexecutablefileobj.PEVersionInfoResourceType()
-        verres.set_OriginalFilename(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        reslist.add_Resource(verres)
-        winexecobj.set_Resources(reslist)
-    elif search_string == "FileItem/PEInfo/VersionInfoList/VersionInfoItem/PrivateBuild":
-        reslist = winexecutablefileobj.PEResourceListType()
-        verres = winexecutablefileobj.PEVersionInfoResourceType()
-        verres.set_PrivateBuild(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        reslist.add_Resource(verres)
-        winexecobj.set_Resources(reslist)
-    elif search_string == "FileItem/PEInfo/VersionInfoList/VersionInfoItem/ProductName":
-        reslist = winexecutablefileobj.PEResourceListType()
-        verres = winexecutablefileobj.PEVersionInfoResourceType()
-        verres.set_ProductName(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        reslist.add_Resource(verres)
-        winexecobj.set_Resources(reslist)
-    elif search_string == "FileItem/PEInfo/VersionInfoList/VersionInfoItem/ProductVersion":
-        reslist = winexecutablefileobj.PEResourceListType()
-        verres = winexecutablefileobj.PEVersionInfoResourceType()
-        verres.set_ProductVersion(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        reslist.add_Resource(verres)
-        winexecobj.set_Resources(reslist)
-    elif search_string == "FileItem/PEInfo/VersionInfoList/VersionInfoItem/SpecialBuild":
-        reslist = winexecutablefileobj.PEResourceListType()
-        verres = winexecutablefileobj.PEVersionInfoResourceType()
-        verres.set_SpecialBuild(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        reslist.add_Resource(verres)
-        winexecobj.set_Resources(reslist)
-
-    if valueset and winexecobj.hasContent_():
-        winexecobj.set_xsi_type('WinExecutableFileObj:WindowsExecutableFileObjectType')
-    elif not valueset:
-        winexecobj = None
+    else:
+        return None
     
-    return winexecobj
+    return winexec
 
 def create_win_user_obj(search_string, content_string, condition):
     from cybox.objects.win_user_object import WinUser
