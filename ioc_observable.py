@@ -79,7 +79,11 @@ def sanitize(string):
 
     if not isinstance(string, basestring):
         return string
-    elif any(c in string for c in chars):
+
+    # Remove CDATA wrapper if it existed.
+    string = utils.unwrap_cdata(string)
+
+    if any(c in string for c in chars):
         return utils.wrap_cdata(string)
     else:
         return string
@@ -141,6 +145,8 @@ def _set_numeric_field(obj, attrname, value, condition=None):
         field.apply_condition = "ANY"
     elif condition in ("DoesNotContain", "DoesNotEqual"):
         field.apply_condition = "NONE"
+    else:
+        field.apply_condition = "ALL"  # TODO: Is this correct?
 
     return field
 
@@ -185,11 +191,9 @@ def create_disk_obj(search_string, content_string, condition):
         set_field(disk, disk_attrmap[search_string], content_string, condition)
     elif search_string in part_attrmap:
         set_field(part, part_attrmap[search_string], content_string, condition)
+        disk.partition_list = PartitionList(part)
     else:
         return None
-
-    if has_content(part):
-        disk.partition_list = PartitionList(part)
 
     return disk
 
@@ -261,13 +265,11 @@ def create_driver_obj(search_string, content_string, condition):
         return createFileObj(search_string, content_string, condition)
     elif search_string in device_attrmap:
         set_field(device, device_attrmap[search_string], content_string, condition)
+        windriver.device_object_list = DeviceObjectList(device)
     elif search_string in driver_attrmap:
         set_field(windriver, driver_attrmap[search_string], content_string, condition)
     else:
         return None
-
-    if has_content(device):
-        windriver.device_object_list = DeviceObjectList(device)
 
     return windriver
 
@@ -288,7 +290,8 @@ def create_email_obj(search_string, content_string, condition):
     }
 
     email_attrmap = {
-        "Email/Body": "raw_body"
+        "Email/Body": "raw_body",
+        "Email/EmailServer": "email_server"  # Not a standard OpenIOC indicator term
     }
 
     received_attrmap = {
@@ -307,26 +310,26 @@ def create_email_obj(search_string, content_string, condition):
         "Email/In-Reply-To": "in_reply_to",
         "Email/MIME-Version": "mime_version",
         "Email/Subject": "subject",
-        "Email/To": "to"
+        "Email/To": "to",
+        "Email/ReplyTo": "reply_to"  # Not a standard OpenIOC indicator term
     }
+
 
     if search_string in email_attrmap:
         set_field(email, email_attrmap[search_string], content_string, condition)
     elif search_string in file_attrmap:
         set_field(attachment, file_attrmap[search_string], content_string, condition)
+        email.attachments = Attachments(attachment.parent.id_)
     elif search_string in header_attrmap:
         set_field(header, header_attrmap[search_string], content_string, condition)
+        email.header = header
     elif search_string in received_attrmap:
         set_field(received, received_attrmap[search_string], content_string, condition)
         header.received_lines = ReceivedLineList(received)
     else:
         return None
 
-    if has_content(header):
-        email.header = header
-
     if has_content(attachment):
-        email.attachments = Attachments(attachment.parent.id_)
         return [email, attachment]
 
     return email
@@ -870,16 +873,16 @@ def create_system_object(search_string, content_string, condition):
     elif search_string in winsys_keys:
         return create_win_system_obj(search_string, content_string, condition)
     elif search_string == 'SystemInfoItem/networkArray/networkInfo/dhcpServerArray/dhcpServer':
-        addr = Address(content_string, category=Address.CAT_IPV4)
+        addr = Address(sanitize(content_string), category=Address.CAT_IPV4)
         iface.dhcp_server_list = DHCPServerList(addr)
         system.network_interface_list = NetworkInterfaceList(iface)
     elif search_string == 'SystemInfoItem/networkArray/networkInfo/ipArray/ipInfo/ipAddress':
-        addr = Address(content_string, category=Address.CAT_IPV4)
+        addr = Address(sanitize(content_string), category=Address.CAT_IPV4)
         ipinfo.ip_address = addr
         iface.ip_list = IPInfoList(ipinfo)
         system.network_interface_list = NetworkInterfaceList(iface)
     elif content_string == 'SystemInfoItem/networkArray/networkInfo/ipArray/ipInfo/subnetMask':
-        addr = Address(content_string, category=Address.CAT_IPV4_NETMASK)
+        addr = Address(sanitize(content_string), category=Address.CAT_IPV4_NETMASK)
         ipinfo.subnet_mask = addr
         iface.ip_list = IPInfoList(ipinfo)
         system.network_interface_list = NetworkInterfaceList(iface)
@@ -888,474 +891,251 @@ def create_system_object(search_string, content_string, condition):
 
     return system
 
-def createSystemRestoreObj(search_string, content_string, condition):
-    #Create the restore object
-    restoreobject = winsystemrestoreobj.WindowsSystemRestoreObjectType()
 
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
+def create_system_restore_obj(search_string, content_string, condition):
+    from cybox.objects.win_system_restore_object import WinSystemRestore, HiveList
 
-    if content_string == "SystemRestoreItem/RestorePointName":
-        restoreobject.set_Restore_Point_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif content_string == "SystemRestoreItem/RestorePointFullPath":
-        restoreobject.set_Restore_Point_Full_Path(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif content_string == "SystemRestoreItem/RestorePointDescription":
-        restoreobject.set_Restore_Point_Description(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif content_string == "SystemRestoreItem/RestorePointType":
-        restoreobject.set_Restore_Point_Type(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif content_string == "SystemRestoreItem/Created":
-        restoreobject.set_Created(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
+    restore = WinSystemRestore()
+
+    attrmap = {
+        "SystemRestoreItem/RestorePointName": "restore_point_name",
+        "SystemRestoreItem/RestorePointFullPath": "restore_point_full_path",
+        "SystemRestoreItem/RestorePointDescription": "restore_point_description",
+        "SystemRestoreItem/RestorePointType": "restore_point_type",
+        "SystemRestoreItem/Created": "created",
+        "SystemRestoreItem/ChangeLogEntrySequenceNumber": "changelog_entry_sequence_number",
+        "SystemRestoreItem/ChangeLogEntryFlags": "changelog_entry_flags",
+        "SystemRestoreItem/FileAttributes": "file_attributes",
+        "SystemRestoreItem/OriginalFileName": "original_file_name",
+        "SystemRestoreItem/BackupFileName": "backup_file_name",
+        "SystemRestoreItem/AclChangeUsername": "acl_change_sid",
+        "SystemRestoreItem/AclChangeSecurityID": "acl_change_security_id",
+        "SystemRestoreItem/OriginalShortFileName": "original_short_file_name",
+        "SystemRestoreItem/ChangeLogEntryType": "changelog_entry_type"
+    }
+
+    if search_string in attrmap:
+        set_field(restore, attrmap[search_string], content_string, condition)
     elif content_string == "SystemRestoreItem/RegistryHives/String":
-        registryhivelist = winsystemrestoreobj.HiveListType()
-        registryhivelist.add_Hive(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        restoreobject.set_Registry_Hive_List(registryhivelist)
-    elif content_string == "SystemRestoreItem/ChangeLogFileName":
-        restoreobject.set_Change_Log_File_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif content_string == "SystemRestoreItem/ChangeLogEntrySequenceNumber":
-        restoreobject.set_Change_Log_File_Name(common.LongObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif content_string == "SystemRestoreItem/ChangeLogEntryType":
-        logentrytype = winsystemrestoreobj.ChangeLogEntryTypeType()
-        logentrytype.set_datatype(common.StringObjectPropertyType(datatype='string', condition=condition, valueOf_=sanitize(content_string)))
-        restoreobject.set_ChangeLog_Entry_Type(logentrytype)
-    elif content_string == "SystemRestoreItem/ChangeLogEntryFlags":
-        restoreobject.set_ChangeLog_Entry_Flags(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif content_string == "SystemRestoreItem/FileAttributes":
-        restoreobject.set_File_Attributes(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif content_string == "SystemRestoreItem/OriginalFileName":
-        restoreobject.Original_File_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif content_string == "SystemRestoreItem/BackupFileName":
-        restoreobject.Backup_File_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif content_string == "SystemRestoreItem/AclChangeUsername":
-        restoreobject.ACL_Change_Username(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif content_string == "SystemRestoreItem/AclChangeSecurityID":
-        restoreobject.ACL_Change_SID(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif content_string == "SystemRestoreItem/OriginalShortFileName":
-        restoreobject.Original_Short_File_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
+        s = String(sanitize(content_string))
+        s.condition = condition
+        restore.registry_hive_list = HiveList(s)
+    else:
+        return None
 
-    if valueset and restoreobject.hasContent_():
-        restoreobject.set_xsi_type('WinSystemRestoreObj:WindowsSystemRestoreObjectType')
-    elif not valueset:
-        restoreobject = None
-            
-    return restoreobject
+    return restore
 
-def createUserObj(search_string, content_string, condition):
-    #Create the user account object
-    accountobj = useraccountobj.UserAccountObjectType()
 
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
-        
-    if search_string == "UserItem/SecurityID":
-        return createWinUserObj(search_string, content_string, condition)
-    elif search_string == "UserItem/SecurityType":
-        return createWinUserObj(search_string, content_string, condition)
-    elif search_string == "UserItem/Username":
-        accountobj.set_Username(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "UserItem/description":
-        return createAccountObj(search_string, content_string, condition)
-    elif search_string == "UserItem/disabled":
-        return createAccountObj(search_string, content_string, condition)
-    elif search_string == "UserItem/fullname":
-        accountobj.set_Full_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
+def create_user_obj(search_string, content_string, condition):
+    from cybox.objects.user_account_object import UserAccount, GroupList
+    from cybox.objects.win_user_object import WinGroup
+
+    user_account = UserAccount()
+    group = WinGroup()
+
+    winuser_keys = (
+        "UserItem/SecurityID",
+        "UserItem/SecurityType",
+    )
+
+    account_keys = (
+        "UserItem/description",
+        "UserItem/disabled",
+        "UserItem/lockedout"
+    )
+
+    attrmap = {
+        "UserItem/fullname": "full_name",
+        "UserItem/homedirectory": "home_directory",
+        "UserItem/passwordrequired": "password_required",
+        "UserItem/scriptpath": "script_path",
+        "UserItem/userpasswordage": "user_password_age"
+    }
+
+    if search_string in winuser_keys:
+        return create_win_user_obj(search_string, content_string, condition)
+    elif search_string in account_keys:
+        return create_account_obj(search_string, content_string, condition)
+    elif search_string in attrmap:
+        set_field(user_account, attrmap[search_string], content_string, condition)
     elif search_string == "UserItem/grouplist/groupname":
-        group_list = useraccountobj.GroupListType()
-        group = winuseraccountobj.WindowsGroupType()
-        group.set_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        group_list.add_Group(group)
-        accountobj.set_Group_List(group_list)
-    elif search_string == "UserItem/homedirectory":
-        accountobj.set_Home_Directory(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "UserItem/lockedout":
-        return createAccountObj(search_string, content_string, condition)
-    elif search_string == "UserItem/passwordrequired":
-        accountobj.set_password_required(content_string)
-    elif search_string == "UserItem/scriptpath":
-        accountobj.set_Script_path(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "UserItem/userpasswordage":
-        accountobj.set_User_Password_Age(common.DurationObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-
-    if valueset and accountobj.hasContent_():
-        accountobj.set_xsi_type('UserAccountObj:UserAccountObjectType')
-    elif not valueset:
-        accountobj = None
+        set_field(group, "name", content_string, condition)
+        user_account.group_list = GroupList(group)
+    else:
+        return None
             
-    return accountobj
+    return user_account
 
-def createVolumeObj(search_string, content_string, condition):
-    #Create the volume object
-    volobj = volumeobj.VolumeObjectType()
+def create_volume_obj(search_string, content_string, condition):
+    from cybox.objects.volume_object import Volume, FileSystemFlagList
 
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
+    attrmap = {
+        "VolumeItem/ActualAvailableAllocationUnits": "actual_available_allocation_units",
+        "VolumeItem/BytesPerSector": "bytes_per_sector",
+        "VolumeItem/CreationTime": "creation_time",
+        "VolumeItem/DevicePath": "device_path",
+        "VolumeItem/FileSystemType": "file_system_type",
+        "VolumeItem/IsMounted": "is_mounted",
+        "VolumeItem/Name": "name",
+        "VolumeItem/SectorsPerAllocationUnit": "sectors_per_allocation_unit",
+        "VolumeItem/SerialNumber": "serial_number",
+        "VolumeItem/TotalAllocationUnits": "total_allocation_units"
+    }
 
-    if search_string == "VolumeItem/ActualAvailableAllocationUnits":
-        volobj.set_Actual_Available_Allocation_Units(process_numerical_value(common.UnsignedLongObjectPropertyType(datatype=None), content_string, condition))
-    elif search_string == "VolumeItem/BytesPerSector":
-        volobj.set_Bytes_Per_Sector(process_numerical_value(common.PositiveIntegerObjectPropertyType(datatype=None), content_string, condition))
-    elif search_string == "VolumeItem/CreationTime":
-        volobj.set_Creation_Time(common.DateObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-    elif search_string == "VolumeItem/DevicePath":
-        volobj.set_Device_Path(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "VolumeItem/DriveLetter":
-        return createWinVolumeObj(search_string, content_string, condition)
+    volume = Volume()
+
+    if search_string == "VolumeItem/DriveLetter":
+        return create_win_volume_obj(search_string, content_string, condition)
+    elif search_string in attrmap:
+        set_field(volume, attrmap[search_string], content_string, condition)
     elif search_string == "VolumeItem/FileSystemFlags":
-        file_system_flag_list = volumeobj.FileSystemFlagListType()
-        file_system_flag = volumeobj.VolumeFileSystemFlagType(datatype=None, condition=condition, valueOf_=content_string)
-        file_system_flag_list.add_File_System_Flag(file_system_flag)
-        volobj.set_File_System_Flag_List(file_system_flag_list)
-    elif search_string == "VolumeItem/FileSystemType":
-        volobj.set_File_System_Type(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "VolumeItem/IsMounted":
-        volobj.set_ismounted(content_string)
-    elif search_string == "VolumeItem/Name":
-        volobj.set_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "VolumeItem/SectorsPerAllocationUnit":
-        volobj.set_Sectors_Per_Allocation_Unit(process_numerical_value(common.UnsignedIntegerObjectPropertyType(datatype=None), content_string, condition))
-    elif search_string == "VolumeItem/SerialNumber":
-        volobj.set_Serial_Number(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "VolumeItem/TotalAllocationUnits":
-        volobj.set_Total_Allocation_Units(process_numerical_value(common.UnsignedLongObjectPropertyType(datatype=None), content_string, condition))
-    elif search_string == "VolumeItem/TotalAllocationUnits":
-        volobj.set_Total_Allocation_Units(process_numerical_value(common.UnsignedLongObjectPropertyType(datatype=None), content_string, condition))
-    elif search_string == "VolumeItem/Type":
-        valueset = False
-    elif search_string == "VolumeItem/VolumeName":
-        valueset = False
+        s = String(sanitize(content_string))
+        s.condition = condition
+        volume.file_system_flag_list = FileSystemFlagList(s)
+    else:
+        return None
 
-    if valueset and volobj.hasContent_():
-        volobj.set_xsi_type('VolumeObj:VolumeObjectType')
-    elif not valueset:
-        volobj = None
+    return volume
 
-    return volobj
-    
-## specialized object functions
 
-def createWinSystemObj(search_string, content_string, condition):
-    #Create the Windows system object
-    winsysobj = winsystemobj.WindowsSystemObjectType()
-    
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
-    
-    if search_string == 'SystemInfoItem/domain':
-        stringobjattribute = common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string))
-        winsysobj.set_Domain(stringobjattribute)
-    elif search_string == 'SystemInfoItem/productID':
-        stringobjattribute = common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string))
-        winsysobj.set_Product_ID(stringobjattribute)
-    elif search_string == 'SystemInfoItem/productName':
-        stringobjattribute = common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string))
-        winsysobj.set_Product_Name(stringobjattribute)
-    elif search_string == 'SystemInfoItem/regOrg':
-        stringobjattribute = common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string))
-        winsysobj.set_Registered_Organization(stringobjattribute)
-    elif search_string == 'SystemInfoItem/regOwner':
-        stringobjattribute = common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string))
-        winsysobj.set_Registered_Owner(stringobjattribute)
-    
-    if valueset and winsysobj.hasContent_():
-        winsysobj.set_xsi_type('WinSystemObj:WindowsSystemObjectType')
-    elif not valueset:
-        winsysobj = None
+def create_win_system_obj(search_string, content_string, condition):
+    from cybox.objects.win_system_object import WinSystem
 
-    return winsysobj
+    attrmap = {
+        'SystemInfoItem/domain': "domain",
+        'SystemInfoItem/productID': "product_id",
+        'SystemInfoItem/productName': "product_name",
+        'SystemInfoItem/regOrg': "registered_organization",
+        'SystemInfoItem/regOwner': "registered_owner"
+    }
+
+    if search_string not in attrmap:
+        return None
+
+    winsys = WinSystem()
+    set_field(winsys, attrmap[search_string], content_string, condition)
+
+    return winsys
 
 def createWinTaskObject(search_string, content_string, condition):
-    #Create the user account object
-    taskobj = wintaskobj.WindowsTaskObjectType()
+    from cybox.objects.win_task_object import (
+        WinTask, TaskAction, TaskActionList, IComHandlerAction,
+        IExecAction, Trigger, TriggerList, IShowMessageAction
+    )
 
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
+    attrmap = {
+        "TaskItem/AccountLogonType": "account_logon_type",
+        "TaskItem/AccountName": "account_name",
+        "TaskItem/AccountRunLevel": "account_run_level",
+        "TaskItem/ApplicationName": "application_name",
+        "TaskItem/Comment": "comment",
+        "TaskItem/CreationDate": "creation_date",
+        "TaskItem/Creator": "creator",
+        "TaskItem/ExitCode": "exit_code",
+        "TaskItem/MaxRunTime": "max_run_time",
+        "TaskItem/MostRecentRunTime": "most_recent_run_time",
+        "TaskItem/Name": "name",
+        "TaskItem/NextRunTime": "next_run_time",
+        "TaskItem/Parameters": "parameters",
+        "TaskItem/WorkItemData": "work_item_data",
+        "TaskItem/WorkingDirectory": "working_directory",
+        "TaskItem/Flag": "flags",
+        "TaskItem/Priority": "priority",
+        "TaskItem/Status": "status"
+    }
 
-    if search_string == "TaskItem/AccountLogonType":
-        taskobj.set_Account_Logon_Type(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "TaskItem/AccountName":
-        taskobj.set_Account_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "TaskItem/AccountRunLevel":
-        taskobj.set_Account_Run_Level(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
+    icom_attrmap = {
+        "TaskItem/ActionList/Action/COMClassId": "com_class_id",
+        "TaskItem/ActionList/Action/COMData": "com_data"
+    }
+
+    iexecaction_attrmap = {
+        "TaskItem/ActionList/Action/ExecArguments": "exec_arguments",
+        "TaskItem/ActionList/Action/ExecProgramPath": "exec_program_path",
+        "TaskItem/ActionList/Action/ExecWorkingDirectory": "exec_working_directory"
+    }
+
+    ishowmessage_attrmap = {
+        "TaskItem/ActionList/Action/ShowMessageBody": "show_message_body",
+        "TaskItem/ActionList/Action/ShowMessageTitle": "show_message_title"
+    }
+
+    trigger_attrmap = {
+        "TaskItem/TriggerList/Trigger/TriggerBegin": "trigger_begin",
+        "TaskItem/TriggerList/Trigger/TriggerDelay": "trigger_delay",
+        "TaskItem/TriggerList/Trigger/TriggerEnd": "trigger_end",
+        "TaskItem/TriggerList/Trigger/TriggerFrequency": "trigger_frequency",
+        "TaskItem/TriggerList/Trigger/TriggerMaxRunTime": "trigger_max_run_time",
+        "TaskItem/TriggerList/Trigger/TriggerSessionChangeType": "trigger_session_change_type"
+    }
+
+    email_map = {
+        "TaskItem/ActionList/Action/EmailBCC": "Email/BCC",
+        "TaskItem/ActionList/Action/EmailBody": "Email/Body",
+        "TaskItem/ActionList/Action/EmailCC": "Email/CC",
+        "TaskItem/ActionList/Action/EmailSubject": "Email/Subject",
+        "TaskItem/ActionList/Action/EmailFrom": "Email/From",
+        "TaskItem/ActionList/Action/EmailTo": "Email/To",
+        "TaskItem/ActionList/Action/EmailReplyTo": "Email/ReplyTo",
+        "TaskItem/ActionList/Action/EmailServer": "Email/EmailServer"
+    }
+
+    task     = WinTask()
+    action   = TaskAction()
+    actions  = TaskActionList(action)
+    trigger  = Trigger()
+    triggers = TriggerList(trigger)
+
+    if search_string in attrmap:
+        set_field(task, attrmap[search_string], content_string, condition)
+    elif search_string in icom_attrmap:
+        handler = IComHandlerAction()
+        set_field(handler, icom_attrmap[search_string], content_string, condition)
+        action.icomhandleraction = handler
+        task.action_list = actions
+    elif search_string in email_map:
+        email = create_email_obj(email_map[search_string], content_string, condition)
+        action.iemailaction = email
+        task.action_list = actions
+    elif search_string in iexecaction_attrmap:
+        execaction = IExecAction()
+        set_field(execaction, iexecaction_attrmap[search_string], content_string, condition)
+        action.iexecaction = execaction
+        task.action_list = actions
+    elif search_string in ishowmessage_attrmap:
+        ishowmessage = IShowMessageAction()
+        set_field(ishowmessage, ishowmessage_attrmap[search_string], content_string, condition)
+        action.ishowmessageaction = ishowmessage,
+        task.action_list = actions
+    elif search_string in trigger_attrmap:
+        set_field(trigger, trigger_attrmap[search_string], content_string, condition)
+        task.trigger_list = triggers
     elif search_string == "TaskItem/ActionList/Action/ActionType":
-        actionlist = wintaskobj.TaskActionListType()
-        action = wintaskobj.TaskActionType()
-        actiontype = wintaskobj.TaskActionTypeType()
-        actiontype.set_valueOf_(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        action.set_Action_Type(actiontype)
-        actionlist.add_Action(action)
-        taskobj.set_Action_List(actionlist)
-    elif search_string == "TaskItem/ActionList/Action/COMClassId":
-        actionlist = wintaskobj.TaskActionListType()
-        action = wintaskobj.TaskActionType()
-        icomhandler = wintaskobj.IComHandlerActionType()
-        icomhandler.set_COM_Class_ID(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        action.set_IComHandlerAction(icomhandler)
-        actionlist.add_Action(action)
-        taskobj.set_Action_List(actionlist)
-    elif search_string == "TaskItem/ActionList/Action/COMData":
-        actionlist = wintaskobj.TaskActionListType()
-        action = wintaskobj.TaskActionType()
-        icomhandler = wintaskobj.IComHandlerActionType()
-        icomhandler.set_COM_Data(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        action.set_IComHandlerAction(icomhandler)
-        actionlist.add_Action(action)
-        taskobj.set_Action_List(actionlist)
-    elif search_string.count("DigitalSignature") > 0: 
-        valueset = False
-    elif search_string == "TaskItem/ActionList/Action/EmailAttachments":
-        #unlike the Email indicator, this TaskItem does not break EmailAttachments into component parts
-        valueset = False
-    elif search_string == "TaskItem/ActionList/Action/EmailBCC":
-        actionlist = wintaskobj.TaskActionListType()
-        action = wintaskobj.TaskActionType()
-        emailmsg = createEmailObj("Email/BCC", content_string, condition)
-        action.set_IEmailAction(emailmsg)
-        actionlist.add_Action(action)
-        taskobj.set_Action_List(actionlist)
-    elif search_string == "TaskItem/ActionList/Action/EmailBody":
-        actionlist = wintaskobj.TaskActionListType()
-        action = wintaskobj.TaskActionType()
-        emailmsg = createEmailObj("Email/Body", content_string, condition)
-        action.set_IEmailAction(emailmsg)
-        actionlist.add_Action(action)
-        taskobj.set_Action_List(actionlist)
-    elif search_string == "TaskItem/ActionList/Action/EmailCC":
-        actionlist = wintaskobj.TaskActionListType()
-        action = wintaskobj.TaskActionType()
-        emailmsg = createEmailObj("Email/CC", content_string, condition)
-        action.set_IEmailAction(emailmsg)
-        actionlist.add_Action(action)
-        taskobj.set_Action_List(actionlist)
-    elif search_string == "TaskItem/ActionList/Action/EmailFrom":
-        actionlist = wintaskobj.TaskActionListType()
-        action = wintaskobj.TaskActionType()
-        emailmsg = createEmailObj("Email/From", content_string, condition)
-        action.set_IEmailAction(emailmsg)
-        actionlist.add_Action(action)
-        taskobj.set_Action_List(actionlist)
-    elif search_string == "TaskItem/ActionList/Action/EmailReplyTo":
-        actionlist = wintaskobj.TaskActionListType()
-        action = wintaskobj.TaskActionType()
-        #no base email reply-to indicator
-        emailobj = emailmessageobj.EmailMessageObjectType()
-        email_header = emailmessageobj.EmailHeaderType()
-        email_replyto = addressobj.AddressObjectType()
-        email_replyto.set_Address_Value(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        email_header.set_Reply_To(email_replyto)
-        emailobj.set_Header(email_header)
-        action.set_IEmailAction(emailobj)
-        actionlist.add_Action(action)
-        taskobj.set_Action_List(actionlist)
-    elif search_string == "TaskItem/ActionList/Action/EmailServer":
-        actionlist = wintaskobj.TaskActionListType()
-        action = wintaskobj.TaskActionType()
-        #no base email server indicator
-        emailobj = emailmessageobj.EmailMessageObjectType()
-        emailobj.set_Email_Server(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        action.set_IEmailAction(emailobj)
-        actionlist.add_Action(action)
-        taskobj.set_Action_List(actionlist)
-    elif search_string == "TaskItem/ActionList/Action/EmailSubject":
-        actionlist = wintaskobj.TaskActionListType()
-        action = wintaskobj.TaskActionType()
-        emailmsg = createEmailObj("Email/Subject", content_string, condition)
-        action.set_IEmailAction(emailmsg)
-        actionlist.add_Action(action)
-        taskobj.set_Action_List(actionlist)
-    elif search_string == "TaskItem/ActionList/Action/EmailTo":
-        actionlist = wintaskobj.TaskActionListType()
-        action = wintaskobj.TaskActionType()
-        emailmsg = createEmailObj("Email/To", content_string, condition)
-        action.set_IEmailAction(emailmsg)
-        actionlist.add_Action(action)
-        taskobj.set_Action_List(actionlist)
-    elif search_string == "TaskItem/ActionList/Action/ExecArguments":
-        actionlist = wintaskobj.TaskActionListType()
-        action = wintaskobj.TaskActionType()
-        execactiontype = wintaskobj.IExecActionType()
-        execactiontype.set_Exec_Arguments(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        action.set_IExecAction(execactiontype)
-        actionlist.add_Action(action)
-        taskobj.set_Action_List(actionlist)
-    elif search_string == "TaskItem/ActionList/Action/ExecProgramMd5sum":
-        valueset = False
-    elif search_string == "TaskItem/ActionList/Action/ExecProgramPath":
-        actionlist = wintaskobj.TaskActionListType()
-        action = wintaskobj.TaskActionType()
-        execactiontype = wintaskobj.IExecActionType()
-        execactiontype.set_Exec_Program_Path(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        action.set_IExecAction(execactiontype)
-        actionlist.add_Action(action)
-        taskobj.set_Action_List(actionlist)
-    elif search_string == "TaskItem/ActionList/Action/ExecProgramSha1sum":
-        valueset = False
-    elif search_string == "TaskItem/ActionList/Action/ExecProgramSha256sum":
-        valueset = False
-    elif search_string == "TaskItem/ActionList/Action/ExecWorkingDirectory":
-        actionlist = wintaskobj.TaskActionListType()
-        action = wintaskobj.TaskActionType()
-        execactiontype = wintaskobj.IExecActionType()
-        execactiontype.set_Exec_Working_Directory(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        action.set_IExecAction(execactiontype)
-        actionlist.add_Action(action)
-        taskobj.set_Action_List(actionlist)
-    elif search_string == "TaskItem/ActionList/Action/ShowMessageBody":
-        actionlist = wintaskobj.TaskActionListType()
-        action = wintaskobj.TaskActionType()
-        showmsgaction = wintaskobj.IShowMessageActionType()
-        showmsgaction.set_Show_Message_Body(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        action.set_IExecAction(showmsgaction)
-        actionlist.add_Action(action)
-        taskobj.set_Action_List(actionlist)
-    elif search_string == "TaskItem/ActionList/Action/ShowMessageTitle":
-        actionlist = wintaskobj.TaskActionListType()
-        action = wintaskobj.TaskActionType()
-        showmsgaction = wintaskobj.IShowMessageActionType()
-        showmsgaction.set_Show_Message_Title(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        action.set_IExecAction(showmsgaction)
-        actionlist.add_Action(action)
-        taskobj.set_Action_List(actionlist)
-    elif search_string == "TaskItem/ApplicationName":
-        taskobj.set_Application_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "TaskItem/CertificateIssuer":
-        valueset = False
-    elif search_string == "TaskItem/CertificateSubject":
-        valueset = False
-    elif search_string == "TaskItem/Comment":
-        taskobj.set_Comment(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "TaskItem/CreationDate":
-        taskobj.set_Creation_Date(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "TaskItem/Creator":
-        taskobj.set_Creator(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "TaskItem/ExitCode":
-        taskobj.set_Exit_Code(common.LongObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "TaskItem/Flag":
-        flags = wintaskobj.TaskFlagType()
-        flags.set_valueOf_(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        taskobj.set_Flags(flags)
-    elif search_string == "TaskItem/MaxRunTime":
-        taskobj.set_Max_Run_Time(common.UnsignedLongObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "TaskItem/MostRecentRunTime":
-        taskobj.set_Most_Recent_Run_Time(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "TaskItem/Name":
-        taskobj.set_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "TaskItem/NextRunTime":
-        taskobj.set_Next_Run_Time(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "TaskItem/Parameters":
-        taskobj.set_Parameters(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "TaskItem/Priority":
-        priority = wintaskobj.TaskPriorityType()
-        priority.set_valueOf_(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        taskobj.set_Priority(priority)
-    elif search_string == "TaskItem/SignatureDescription":
-        valueset = False
-    elif search_string == "TaskItem/SignatureExists":
-        valueset = False
-    elif search_string == "TaskItem/SignatureVerified":
-        valueset = False
-    elif search_string == "TaskItem/Status":
-        status = wintaskobj.TaskStatusType()
-        status.set_valueOf_(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        taskobj.set_Status(status)
-    elif search_string == "TaskItem/TriggerList/Trigger/TriggerBegin":
-        triggerlist = wintaskobj.TriggerListType()
-        trigger = wintaskobj.TriggerType()
-        trigger.set_Trigger_Begin(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        triggerlist.add_Trigger(trigger)
-        taskobj.set_Trigger_List(triggerlist)
-    elif search_string == "TaskItem/TriggerList/Trigger/TriggerDelay":
-        triggerlist = wintaskobj.TriggerListType()
-        trigger = wintaskobj.TriggerType()
-        trigger.set_Trigger_Delay(common.DurationObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        triggerlist.add_Trigger(trigger)
-        taskobj.set_Trigger_List(triggerlist)
-    elif search_string == "TaskItem/TriggerList/Trigger/TriggerEnabled":
-        valueset = False
-    elif search_string == "TaskItem/TriggerList/Trigger/TriggerEnd":
-        triggerlist = wintaskobj.TriggerListType()
-        trigger = wintaskobj.TriggerType()
-        trigger.set_Trigger_End(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        triggerlist.add_Trigger(trigger)
-        taskobj.set_Trigger_List(triggerlist)
-    elif search_string == "TaskItem/TriggerList/Trigger/TriggerFrequency":
-        triggerlist = wintaskobj.TriggerListType()
-        trigger = wintaskobj.TriggerType()
-        triggerfreq = wintaskobj.TaskTriggerFrequencyType()
-        triggerfreq.set_valueOf_(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        trigger.set_Trigger_Frequency(triggerfreq)
-        triggerlist.add_Trigger(trigger)
-        taskobj.set_Trigger_List(triggerlist)
-    elif search_string == "TaskItem/TriggerList/Trigger/TriggerMaxRunTime":
-        triggerlist = wintaskobj.TriggerListType()
-        trigger = wintaskobj.TriggerType()
-        trigger.set_Trigger_Max_Run_Time(common.DurationObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        triggerlist.add_Trigger(trigger)
-        taskobj.set_Trigger_List(triggerlist)
-    elif search_string == "TaskItem/TriggerList/Trigger/TriggerSessionChangeType":
-        triggerlist = wintaskobj.TriggerListType()
-        trigger = wintaskobj.TriggerType()
-        trigger.set_Trigger_Session_Change_Type(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        triggerlist.add_Trigger(trigger)
-        taskobj.set_Trigger_List(triggerlist)
-    elif search_string == "TaskItem/TriggerList/Trigger/TriggerSubscription":
-        valueset = False
-    elif search_string == "TaskItem/TriggerList/Trigger/TriggerUsername":
-        valueset = False
-    elif search_string == "TaskItem/TriggerList/Trigger/TriggerValueQueries":
-        valueset = False
-    elif search_string == "TaskItem/VirtualPath":
-        valueset = False
-    elif search_string == "TaskItem/WorkItemData":
-        taskobj.set_Work_Item_Data(common.Base64BinaryObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "TaskItem/WorkingDirectory":
-        taskobj.set_Working_Directory(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "TaskItem/md5sum":
-        valueset = False
-    elif search_string == "TaskItem/sha1sum":
-        valueset = False
-    elif search_string == "TaskItem/sha256sum":
-        valueset = False
+        set_field(action, "action_type", content_string, condition)
+        task.action_list = actions
+    else:
+        return None
 
-    if valueset and taskobj.hasContent_():
-        taskobj.set_xsi_type('WinTaskObj:WindowsTaskObjectType')
-    elif not valueset:
-        taskobj = None
-            
-    return taskobj
-   
-def createWinVolumeObj(search_string, content_string, condition):
-    #Create the volume object
-    winvolobj = winvolumeobj.WindowsVolumeObjectType()
-    
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
-    
-    if search_string == "VolumeItem/DriveLetter":
-        winvolobj.set_Drive_Letter(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
+    return task
 
-    if valueset and winvolobj.hasContent_():
-        winvolobj.set_xsi_type('WinVolumeObj:WindowsVolumeObjectType')
-    elif not valueset:
-        winvolobj = None
 
-    return winvolobj 
+def create_win_volume_obj(search_string, content_string, condition):
+    from cybox.objects.win_volume_object import WinVolume
 
-def createUnixFileObj(search_string, content_string, condition):
-    #Create the unix file object
-    fileobj = unixfileobj.UnixFileObjectType()
+    if search_string != "VolumeItem/DriveLetter":
+        return None
 
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
+    volume = WinVolume()
+    set_field(volume, "drive_letter", content_string, condition)
 
-    if search_string == "FileItem/INode":
-        fileobj.set_INode(process_numerical_value(common.UnsignedLongObjectPropertyType(datatype=None), content_string, condition))
+    return volume
 
-    if valueset and fileobj.hasContent_():
-        fileobj.set_xsi_type('UnixFileObj:UnixFileObjectType')
-    elif not valueset:
-        fileobj = None
-    
-    return fileobj
-    
+
+def create_unix_file_obj(search_string, content_string, condition):
+    # python-cybox 2.1.0.11 does not support Unix File Object
+    pass
+
+
 def createWinFileObj(search_string, content_string, condition):
     #Create the windows file object
     fileobj = winfileobj.WindowsFileObjectType()
@@ -1739,23 +1519,18 @@ def create_account_obj(search_string, content_string, condition):
     
     return account
  
-def createWinMemoryPageObj(search_string, content_string, condition):
-    #Create the windows memory page region object
-    wmpobj = winmemorypageregionobj.WindowsMemoryPageRegionObjectType()
+def create_win_memory_page_obj(search_string, content_string, condition):
+    from cybox.objects.win_memory_page_region_object import WinMemoryPageRegion
 
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
+    if search_string != "ProcessItem/SectionList/MemorySection/Protection":
+        return
 
-    if search_string == "ProcessItem/SectionList/MemorySection/Protection":
-        wmpobj.set_Protect(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
+    page = WinMemoryPageRegion()
+    set_field(page, "protect", content_string, condition)
 
-    if valueset and wmpobj.hasContent_():
-        wmpobj.set_xsi_type('WinMemoryPageRegionObj:WindowsMemoryPageRegionObjectType')
-    elif not valueset:
-        wmpobj = None
-    
-    return wmpobj
-    
+    return page
+
+
 def createWinProcessObj(search_string, content_string, condition):
     #Create the Win process object
     winprocobj = winprocessobj.WindowsProcessObjectType()

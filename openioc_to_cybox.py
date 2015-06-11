@@ -28,8 +28,8 @@ import ioc_observable
 __version__ = "0.3"
 
 
-# Module logger. Lazily initialized
-LOG = None
+# Module logger.
+LOG = logging.getLogger(__name__)
 
 # Map of IndicatorItem conditions to CybOX operators
 CONDITIONS = {
@@ -250,7 +250,7 @@ def get_arg_parser():
         "-v",
         dest="verbose",
         default=False,
-        help="Verbose messages."
+        help="Verbose output."
     )
 
     parser.add_argument(
@@ -264,8 +264,6 @@ def get_arg_parser():
 
 
 def init_logging(verbose=False):
-    global LOG
-
     if verbose:
         level = logging.DEBUG
     else:
@@ -273,8 +271,6 @@ def init_logging(verbose=False):
 
     fmt = '[%(asctime)s] [%(levelname)s] %(message)s'
     logging.basicConfig(format=fmt, level=level)
-
-    LOG = logging.getLogger(__name__)
 
 
 def write_observables(observables, outfn):

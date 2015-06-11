@@ -8,6 +8,7 @@ Wraps output of OpenIOC to CybOX Script
 
 # builtin
 import sys
+import logging
 import argparse
 
 # python-stix
@@ -29,6 +30,9 @@ import openioc_to_cybox
 __version__ = "0.2"
 
 
+LOG = logging.getLogger(__name__)
+
+
 def get_arg_parser():
     desc = "OpenIOC to STIX v%s" % __version__
     parser = argparse.ArgumentParser(description=desc)
@@ -45,6 +49,13 @@ def get_arg_parser():
         required=True,
         dest="outfile",
         help="Ouput STIX XML filename"
+    )
+
+    parser.add_argument(
+        "-v",
+        dest="verbose",
+        default=False,
+        help="Verbose output."
     )
 
     return parser
@@ -74,10 +85,23 @@ def observable_to_indicator(observable):
     return indicator
 
 
+def init_logging(verbose=False):
+    if verbose:
+        level = logging.DEBUG
+    else:
+        level = logging.INFO
+
+    fmt = '[%(asctime)s] [%(levelname)s] %(message)s'
+    logging.basicConfig(format=fmt, level=level)
+
+
 def main():
     # Parse command line arguments
     argparser = get_arg_parser()
     args = argparser.parse_args()
+
+    # initialize logging
+    init_logging(args.verbose)
 
     # Create OpenIOC binding object
     openioc_indicators = openioc.parse(args.infile)
