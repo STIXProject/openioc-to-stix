@@ -803,150 +803,90 @@ def create_service_obj(search_string, content_string, condition):
     return service
 
 
-def createSystemObj(search_string, content_string, condition):
-    #Create the system object
-    sysobj = systemobj.SystemObjectType()
+def create_system_object(search_string, content_string, condition):
+    from cybox.objects.address_object import Address
+    from cybox.objects.system_object import (
+        System, OS, BIOSInfo, NetworkInterface, NetworkInterfaceList,
+        DHCPServerList, IPInfo, IPInfoList
+    )
 
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
+    winsys_keys = (
+        "SystemInfoItem/productID",
+        "SystemInfoItem/regOrg",
+        "SystemInfoItem/regOwner",
+        "SystemInfoItem/domain"
+    )
 
-    if content_string == 'SystemInfoItem/MAC' or content_string == 'SystemInfoItem/networkArray/networkInfo/MAC':
-        network_interface_list = systemobj.NetworkInterfaceListType()
-        network_interface = systemobj.NetworkInterfaceType()
-        network_interface.set_MAC(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        network_interface_list.add_Network_Interface(network_interface)
-        sysobj.set_Network_Interface_List(network_interface_list)
-    elif content_string == 'SystemInfoItem/OS':
-        os = systemobj.OSType()
-        os.set_Platform(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        sysobj.set_OS(os)
-    elif content_string == 'SystemInfoItem/availphysical':
-        sysobj.set_Available_Physical_Memory(process_numerical_value(common.UnsignedLongObjectPropertyType(datatype=None), content_string, condition))
-    elif content_string == 'SystemInfoItem/biosInfo/biosDate':
-        bios_info = systemobj.BIOSInfoType()
-        bios_info.set_BIOS_Date(common.DateObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-        sysobj.set_BIOS_Info(bios_info)
-    elif content_string == 'SystemInfoItem/biosInfo/biosVersion':
-        bios_info = systemobj.BIOSInfoType()
-        bios_info.set_BIOS_Version(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        sysobj.set_BIOS_Info(bios_info)
-    elif content_string == 'SystemInfoItem/buildNumber':
-        os = systemobj.OSType()
-        os.set_Build_Number(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        sysobj.set_OS(os)
-    elif content_string == 'SystemInfoItem/date':
-        sysobj.set_Date(common.DateObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-    elif content_string == 'SystemInfoItem/directory':
-        valueset = False
-    elif content_string == 'SystemInfoItem/domain':
-        createWinSystemObj(search_string, content_string, condition)
-    elif content_string == 'SystemInfoItem/hostname':
-        sysobj.set_Hostname(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif content_string == 'SystemInfoItem/installDate':
-        os = systemobj.OSType()
-        os.set_Install_Date(common.DateObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-        sysobj.set_OS(os)
-    elif content_string == 'SystemInfoItem/machine':
-        valueset = False
-    elif content_string == 'SystemInfoItem/networkArray/networkInfo/MAC':
-        network_interface_list = systemobj.NetworkInterfaceListType()
-        network_interface = systemobj.NetworkInterfaceType()
-        network_interface.set_MAC(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        network_interface_list.add_Network_Interface(network_interface)
-        sysobj.set_Network_Interface_List(network_interface_list)
-    elif content_string == 'SystemInfoItem/networkArray/networkInfo/adapter':
-        network_interface_list = systemobj.NetworkInterfaceListType()
-        network_interface = systemobj.NetworkInterfaceType()
-        network_interface.set_Adapter(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        network_interface_list.add_Network_Interface(network_interface)
-        sysobj.set_Network_Interface_List(network_interface_list)
-    elif content_string == 'SystemInfoItem/networkArray/networkInfo/description':
-        network_interface_list = systemobj.NetworkInterfaceListType()
-        network_interface = systemobj.NetworkInterfaceType()
-        network_interface.set_Description(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        network_interface_list.add_Network_Interface(network_interface)
-        sysobj.set_Network_Interface_List(network_interface_list)
-    elif content_string == 'SystemInfoItem/networkArray/networkInfo/dhcpLeaseExpires':
-        network_interface_list = systemobj.NetworkInterfaceListType()
-        network_interface = systemobj.NetworkInterfaceType()
-        network_interface.set_DHCP_Lease_Expires(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-        network_interface_list.add_Network_Interface(network_interface)
-        sysobj.set_Network_Interface_List(network_interface_list)
-    elif content_string == 'SystemInfoItem/networkArray/networkInfo/dhcpLeaseObtained':
-        network_interface_list = systemobj.NetworkInterfaceListType()
-        network_interface = systemobj.NetworkInterfaceType()
-        network_interface.set_DHCP_Lease_Obtained(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-        network_interface_list.add_Network_Interface(network_interface)
-        sysobj.set_Network_Interface_List(network_interface_list)
-    elif content_string == 'SystemInfoItem/networkArray/networkInfo/dhcpServerArray/dhcpServer':
-        network_interface_list = systemobj.NetworkInterfaceListType()
-        network_interface = systemobj.NetworkInterfaceType()
-        dhcp_server_list = systemobj.DHCPServerListType()
-        dhcp_server_address = addressobj.AddressObjectType(category='ipv4-addr')
-        dhcp_server_address.set_Address_Value(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        dhcp_server_list.add_DHCP_Server_Address(dhcp_server_address)
-        network_interface.set_DHCP_Server_List(dhcp_server_list)
-        network_interface_list.add_Network_Interface(network_interface)
-        sysobj.set_Network_Interface_List(network_interface_list)
+    sys_attrmap = {
+        "SystemInfoItem/processor": "processor",
+        "SystemInfoItem/timezoneDST": "timezone_dst",
+        "SystemInfoItem/timezoneStandard": "timezone_standard",
+        "SystemInfoItem/totalphysical": "total_physical",
+        "SystemInfoItem/uptime": "uptime",
+        "SystemInfoItem/user": "username",
+        "SystemInfoItem/availphysical": "available_physical_memory",
+        "SystemInfoItem/date": "date",
+        "SystemInfoItem/hostname": "hostname"
+    }
+
+    os_attrmap = {
+        "SystemInfoItem/buildNumber": "build_number",
+        "SystemInfoItem/installDate": "install_date",
+        "SystemInfoItem/OS": "platform",
+        "SystemInfoItem/patchLevel": "patch_level"
+    }
+
+    bios_attrmap = {
+        "SystemInfoItem/biosInfo/biosDate": "bios_date",
+        "SystemInfoItem/biosInfo/biosVersion": "bios_version"
+    }
+
+    iface_attrmap = {
+        "SystemInfoItem/MAC": "mac",
+        "SystemInfoItem/networkArray/networkInfo/MAC": "mac",
+        'SystemInfoItem/networkArray/networkInfo/adapter': "adapter",
+        'SystemInfoItem/networkArray/networkInfo/description': "description",
+        'SystemInfoItem/networkArray/networkInfo/dhcpLeaseExpires': "dhcp_lease_expires",
+        'SystemInfoItem/networkArray/networkInfo/dhcpLeaseObtained': "dhcp_lease_obtained"
+    }
+
+    os_ = OS()
+    system = System()
+    bios = BIOSInfo()
+    ipinfo = IPInfo()
+    iface = NetworkInterface()
+
+    if search_string in sys_attrmap:
+        set_field(system, sys_attrmap[search_string], content_string, condition)
+    elif search_string in os_attrmap:
+        set_field(os_, os_attrmap[search_string], content_string, condition)
+        system.os = os_
+    elif search_string in bios_attrmap:
+        set_field(bios, bios_attrmap[search_string], content_string, condition)
+        system.bios_info = bios
+    elif search_string in iface_attrmap:
+        set_field(iface, iface_attrmap[search_string], content_string, condition)
+        system.network_interface_list = NetworkInterfaceList(iface)
+    elif search_string in winsys_keys:
+        return create_win_system_obj(search_string, content_string, condition)
+    elif search_string == 'SystemInfoItem/networkArray/networkInfo/dhcpServerArray/dhcpServer':
+        addr = Address(content_string, category=Address.CAT_IPV4)
+        iface.dhcp_server_list = DHCPServerList(addr)
+        system.network_interface_list = NetworkInterfaceList(iface)
     elif search_string == 'SystemInfoItem/networkArray/networkInfo/ipArray/ipInfo/ipAddress':
-        network_interface_list = systemobj.NetworkInterfaceListType()
-        network_interface = systemobj.NetworkInterfaceType()
-        ip_list = systemobj.IPInfoListType()
-        ip_info = systemobj.IPInfoType()
-        ip_address = addressobj.AddressObjectType(category='ipv4-addr')
-        ip_address.set_Address_Value(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        ip_info.set_IP_Address(ip_address)
-        ip_list.add_IP_Info(ip_info)
-        network_interface.set_IP_List(ip_list)
-        network_interface_list.add_Network_Interface(network_interface)
-        sysobj.set_Network_Interface_List(network_interface_list)
+        addr = Address(content_string, category=Address.CAT_IPV4)
+        ipinfo.ip_address = addr
+        iface.ip_list = IPInfoList(ipinfo)
+        system.network_interface_list = NetworkInterfaceList(iface)
     elif content_string == 'SystemInfoItem/networkArray/networkInfo/ipArray/ipInfo/subnetMask':
-        network_interface_list = systemobj.NetworkInterfaceListType()
-        network_interface = systemobj.NetworkInterfaceType()
-        ip_list = systemobj.IPInfoListType()
-        ip_info = systemobj.IPInfoType()
-        subnet_mask = addressobj.AddressObjectType(category='ipv4-addr')
-        subnet_mask.set_Address_Value(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        ip_info.set_Subnet_Mask(subnet_mask)
-        ip_list.add_IP_Info(ip_info)
-        network_interface.set_IP_List(ip_list)
-        network_interface_list.add_Network_Interface(network_interface)
-        sysobj.set_Network_Interface_List(network_interface_list)
-    elif content_string == 'SystemInfoItem/networkArray/networkInfo/ipGatewayArray/ipGateway':
-        valueset = False
-    elif content_string == 'SystemInfoItem/patchLevel':
-        os = systemobj.OSType()
-        os.set_Patch_Level(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        sysobj.set_OS(os)
-    elif content_string == 'SystemInfoItem/procType':
-        sysobj.set_Processor_Architecture(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif content_string == 'SystemInfoItem/processor':
-        sysobj.set_Processor(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif content_string == 'SystemInfoItem/productID':
-        return createWinSystemObj(search_string, content_string, condition)
-    elif content_string == 'SystemInfoItem/productName':
-        return createWinSystemObj(search_string, content_string, condition)
-    elif content_string == 'SystemInfoItem/regOrg':
-        return createWinSystemObj(search_string, content_string, condition)
-    elif content_string == 'SystemInfoItem/regOwner':
-        return createWinSystemObj(search_string, content_string, condition)
-    elif content_string == 'SystemInfoItem/timezoneDST':
-        sysobj.set_Timezone_DST(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif content_string == 'SystemInfoItem/timezoneStandard':
-        sysobj.set_Timezone_Standard(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif content_string == 'SystemInfoItem/totalphysical':
-        sysobj.set_Total_Physical_Memory(process_numerical_value(common.UnsignedLongObjectPropertyType(datatype=None), content_string, condition))
-    elif content_string == 'SystemInfoItem/uptime':
-        sysobj.set_Total_Physical_Memory(common.DurationObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-    elif content_string == 'SystemInfoItem/user':
-        sysobj.set_Total_Physical_Memory(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
+        addr = Address(content_string, category=Address.CAT_IPV4_NETMASK)
+        ipinfo.subnet_mask = addr
+        iface.ip_list = IPInfoList(ipinfo)
+        system.network_interface_list = NetworkInterfaceList(iface)
+    else:
+        return None
 
-    if valueset and sysobj.hasContent_():
-        sysobj.set_xsi_type('SystemObj:SystemObjectType')
-    elif not valueset:
-        sysobj = None
-
-    return sysobj
+    return system
 
 def createSystemRestoreObj(search_string, content_string, condition):
     #Create the restore object
