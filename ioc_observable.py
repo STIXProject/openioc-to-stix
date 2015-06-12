@@ -2,58 +2,12 @@
 # See LICENSE.txt for complete terms.
 
 # builtin
-import uuid
 import logging
-import collections
 
-# external utilities
-import cybox
+# python-cybox
 from cybox import utils
-from cybox.common.properties import String
+from cybox.common.properties import  String, _LongBase, _IntegerBase, _FloatBase
 
-# external cybox bindings
-import cybox.bindings.cybox_core as core
-import cybox.bindings.cybox_common as common
-import cybox.bindings.account_object as accountobj
-import cybox.bindings.address_object as addressobj
-import cybox.bindings.disk_object as diskobj
-import cybox.bindings.disk_partition_object as diskpartitionobj
-import cybox.bindings.dns_record_object as dnsrecordobj
-import cybox.bindings.dns_cache_object as dnscacheobj
-import cybox.bindings.email_message_object as emailmessageobj
-import cybox.bindings.file_object as fileobj
-import cybox.bindings.http_session_object as httpsessionobj
-import cybox.bindings.library_object as libraryobj
-import cybox.bindings.memory_object as memoryobj
-import cybox.bindings.network_route_entry_object as networkreouteentryobj
-import cybox.bindings.network_connection_object as networkconnectionobj
-import cybox.bindings.port_object as portobj
-import cybox.bindings.process_object as processobj
-import cybox.bindings.socket_address_object as socketaddressobj
-import cybox.bindings.system_object as systemobj
-import cybox.bindings.unix_file_object as unixfileobj
-import cybox.bindings.uri_object as uriobj
-import cybox.bindings.user_account_object as useraccountobj
-import cybox.bindings.volume_object as volumeobj
-import cybox.bindings.win_driver_object as windriverobj
-import cybox.bindings.win_event_log_object as wineventlogobj
-import cybox.bindings.win_executable_file_object as winexecutablefileobj
-import cybox.bindings.win_file_object as winfileobj
-import cybox.bindings.win_handle_object as winhandleobj
-import cybox.bindings.win_kernel_hook_object as winkernelhookobj
-import cybox.bindings.win_memory_page_region_object as winmemorypageregionobj
-import cybox.bindings.win_prefetch_object as winprefetchobj
-import cybox.bindings.win_process_object as winprocessobj
-import cybox.bindings.win_registry_key_object as winregistrykeyobj
-import cybox.bindings.win_service_object as winserviceobj
-import cybox.bindings.win_system_object as winsystemobj
-import cybox.bindings.win_system_restore_object as winsystemrestoreobj
-import cybox.bindings.win_task_object as wintaskobj
-import cybox.bindings.win_user_account_object as winuseraccountobj
-import cybox.bindings.win_volume_object as winvolumeobj
-
-
-from cybox.common.properties import _LongBase, _IntegerBase, _FloatBase
 
 # Used in set_field() method
 NUMERIC_FIELD_BASES = (_FloatBase, _IntegerBase, _LongBase)
@@ -266,9 +220,9 @@ def create_driver_obj(search_string, content_string, condition):
     )
 
     if "/PEInfo/" in search_string:
-        return createWinExecObj(search_string, content_string, condition)
+        return create_pefile_obj(search_string, content_string, condition)
     if search_string in file_keys:
-        return createFileObj(search_string, content_string, condition)
+        return create_file_obj(search_string, content_string, condition)
     elif search_string in device_attrmap:
         set_field(device, device_attrmap[search_string], content_string, condition)
         windriver.device_object_list = DeviceObjectList(device)
@@ -422,12 +376,12 @@ def create_file_obj(search_string, content_string, condition):
     if search_string in attrmap:
         set_field(f, attrmap[search_string], content_string, condition)
     elif search_string in winfile_keys:
-        return createWinFileObj(search_string, content_string, condition)
+        return create_win_file_obj(search_string, content_string, condition)
     elif search_string == "FileItem/INode":
-        return createUnixFileObj(search_string, content_string, condition)
+        return create_unix_file_obj(search_string, content_string, condition)
     elif '/PEInfo/' in search_string:
-        return createWinExecObj(search_string, content_string, condition)
-    elif search_string in ("FileItem/StringList/string", "DriverItem/StringList/string"):
+        return create_pefile_obj(search_string, content_string, condition)
+    elif "/StringList/string" in search_string:
         extracted_features = ExtractedFeatures()
         extracted_features.strings = ExtractedStrings(sanitize(content_string))
         f.extracted_features = extracted_features
@@ -655,7 +609,7 @@ def create_prefetch_obj(search_string, content_string, condition):
     return prefetch
 
 def create_process_obj(search_string, content_string, condition):
-    from cybox.common import ExtractedFeatures, ExtractedString, ExtractedStrings
+    from cybox.common import ExtractedFeatures, ExtractedStrings, ExtractedString
     from cybox.objects.process_object import Process, PortList, ImageInfo
     from cybox.objects.port_object import Port
 
@@ -711,7 +665,8 @@ def create_process_obj(search_string, content_string, condition):
         set_field(image, image_attrmap[search_string], content_string, condition)
         proc.image_info = image
     elif search_string == "ProcessItem/StringList/string":
-        set_field(exfeatures, "string_value", content_string, condition)
+        s = ExtractedString()
+        set_field(s, "string_value", content_string, condition)
         exfeatures = ExtractedFeatures()
         exfeatures.strings = ExtractedStrings(s)
         proc.extracted_features = exfeatures
@@ -1184,9 +1139,15 @@ def create_win_file_obj(search_string, content_string, condition):
 
 def create_pefile_obj(search_string, content_string, condition):
     from cybox.common import DigitalSignature
+    from cybox.objects.file_object import (
+        EPJumpCode, EntryPointSignature, EntryPointSignatureList,
+        Packer, PackerList
+    )
     from cybox.objects.win_executable_file_object import (
         WinExecutableFile, PEVersionInfoResource, PEResource, PEResourceList,
-        PEChecksum
+        PEChecksum, PEHeaders, PEOptionalHeader, PEExports, PEExportedFunctions,
+        PEExportedFunction, PEImport, PEImportedFunction, PEImportedFunctions,
+        PEImportList, PEFileHeader, PESection, PESectionList, PESectionHeaderStruct
     )
 
     ds_attrmap = {
@@ -1224,6 +1185,21 @@ def create_pefile_obj(search_string, content_string, condition):
         "/PEInfo/PEChecksum/PEFileRaw": "pe_file_raw"
     }
 
+    epsig_attrmap = {
+        "/PEInfo/DetectedEntryPointSignature/Name": "name",
+        "/PEInfo/DetectedEntryPointSignature/Type": "type_",
+    }
+
+    jmpcode_attrmap = {
+        "/PEInfo/EpJumpCodes/Depth": "depth",
+        "/PEInfo/EpJumpCodes/Opcodes": "opcodes"
+    }
+
+    exports_attrmap = {
+        "/PEInfo/Exports/ExportsTimeStamp": "exports_time_stamp",
+        "/PEInfo/Exports/NumberOfNames": "number_of_names"
+    }
+
     winexec = WinExecutableFile()
     ds = DigitalSignature()
     verinfo = PEVersionInfoResource()
@@ -1231,115 +1207,83 @@ def create_pefile_obj(search_string, content_string, condition):
     resource = PEResource()
     resources = PEResourceList(resource)
     checksum = PEChecksum()
+    exports = PEExports()
 
-    if any(k in search_string for k in ds_attrmap):
+    if "/PEInfo/ExtraneousBytes" in search_string:
+        set_field(winexec, "extraneous_bytes", content_string, condition)
+    elif any(k in search_string for k in ds_attrmap):
         attr = partial_match(ds_attrmap, search_string)
         set_field(ds, attr, content_string, condition)
         winexec.digital_signature = ds
-    if any(k in search_string for k in checksum_attrmap):
+    elif any(k in search_string for k in checksum_attrmap):
         attr = partial_match(checksum_attrmap, search_string)
         set_field(checksum, attr, content_string, condition)
         winexec.pe_checksum = checksum
+    elif any(k in search_string for k in exports_attrmap):
+        attr = partial_match(exports_attrmap, search_string)
+        set_field(exports, attr, content_string, condition)
+        winexec.exports = exports
+    elif any(k in search_string for k in epsig_attrmap):
+        packer = Packer()
+        epsig = EntryPointSignature()
+        packerlist = PackerList(packer)
+        epsiglist = EntryPointSignatureList(epsig)
+        packer.detected_entrypoint_signatures = epsiglist
+        winexec.packer_list = packerlist
+        attr = partial_match(epsig_attrmap, search_string)
+        set_field(epsig, attr, content_string, condition)
+    elif any(k in search_string for k in jmpcode_attrmap):
+        epjumpcode = EPJumpCode()
+        packer = Packer()
+        packerlist = PackerList(packer)
+        packer.ep_jump_codes = epjumpcode
+        winexec.packer_list = packerlist
+        attr = partial_match(jmpcode_attrmap, search_string)
+        set_field(epjumpcode, attr, content_string, condition)
     elif search_string in verinfo_attrmap:
         set_field(verinfo, verinfo_attrmap[search_string], content_string, condition)
         winexec.resources = verinforesources
     elif search_string in resource_attrmap:
         set_field(resource, resource_attrmap[search_string], content_string, condition)
         winexec.resources = resources
-    elif search_string == "FileItem/PEInfo/BaseAddress" or search_string == "DriverItem/PEInfo/BaseAddress":
-        pehead = winexecutablefileobj.PEHeadersType()
-        opthead = winexecutablefileobj.PEOptionalHeaderType()
-        opthead.set_Base_Of_Code(process_numerical_value(common.HexBinaryObjectPropertyType(datatype=None), content_string, condition))
-        pehead.set_Optional_Header(opthead)
-        winexecobj.set_Headers(pehead)
-    elif search_string == "FileItem/PEInfo/DetectedEntryPointSignature/Name" or search_string == "DriverItem/PEInfo/DetectedEntryPointSignature/Name":
-        packerlist = fileobj.PackerListType()
-        packer = fileobj.PackerType()
-        epsiglist = fileobj.EntryPointSignatureListType()
-        epsig = fileobj.EntryPointSignatureType()
-        epsig.set_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        epsiglist.add_Entry_Point_Signature(epsig)
-        packer.set_Detected_Entrypoint_Signatures(epsiglist)
-        packerlist.add_Packer(packer)
-        winexecobj.set_Packer_List(packerlist)
-    elif search_string == "FileItem/PEInfo/DetectedEntryPointSignature/Type" or search_string == "DriverItem/PEInfo/DetectedEntryPointSignature/Type":
-        packerlist = fileobj.PackerListType()
-        packer = fileobj.PackerType()
-        epsiglist = fileobj.EntryPointSignatureListType()
-        epsig = fileobj.EntryPointSignatureType()
-        epsig.set_Type(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        epsiglist.add_Entry_Point_Signature(epsig)
-        packer.set_Detected_Entrypoint_Signatures(epsiglist)
-        packerlist.add_Packer(packer)
-        winexecobj.set_Packer_List(packerlist)
-    elif search_string == "FileItem/PEInfo/EpJumpCodes/Depth" or search_string == "DriverItem/PEInfo/EpJumpCodes/Depth":
-        packerlist = fileobj.PackerListType()
-        packer = fileobj.PackerType()
-        epjumpcode = fileobj.EPJumpCodeType()
-        epjumpcode.set_Depth(process_numerical_value(common.IntegerObjectPropertyType(datatype=None, ), content_string, condition))
-        packer.set_EP_Jump_Codes(epjumpcode)
-        packerlist.add_Packer(packer)
-        winexecobj.set_Packer_List(packerlist)
-    elif search_string == "FileItem/PEInfo/EpJumpCodes/Opcodes" or search_string == "DriverItem/PEInfo/EpJumpCodes/Opcodes":
-        packerlist = fileobj.PackerListType()
-        packer = fileobj.PackerType()
-        epjumpcode = fileobj.EPJumpCodeType()
-        epjumpcode.set_Opcodes(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        packer.set_EP_Jump_Codes(epjumpcode)
-        packerlist.add_Packer(packer)
-        winexecobj.set_Packer_List(packerlist)
-    elif search_string == "FileItem/PEInfo/Exports/ExportedFunctions/string" or search_string == "DriverItem/PEInfo/Exports/ExportedFunctions/string":
-        exports = winexecutablefileobj.PEExportsType()
-        exportfunlist = winexecutablefileobj.PEExportedFunctionsType()
-        exportfun = winexecutablefileobj.PEExportedFunctionType()
-        exportfun.set_Function_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        exportfunlist.add_Exported_Function(exportfun)
-        exports.set_Exported_Functions(exportfunlist)
-        winexecobj.set_Exports(exports)
-    elif search_string == "FileItem/PEInfo/Exports/ExportsTimeStamp" or search_string == "DriverItem/PEInfo/Exports/ExportsTimeStamp":
-        exports = winexecutablefileobj.PEExportsType()
-        exports.set_Exports_Time_Stamp(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-        winexecobj.set_Exports(exports)
-    elif search_string == "FileItem/PEInfo/Exports/NumberOfNames" or search_string == "DriverItem/PEInfo/Exports/NumberOfNames":
-        exports = winexecutablefileobj.PEExportsType()
-        exports.set_Number_Of_Names(process_numerical_value(common.IntegerObjectPropertyType(datatype=None), content_string, condition))
-        winexecobj.set_Exports(exports)
-    elif search_string == "FileItem/PEInfo/ExtraneousBytes" or search_string == "DriverItem/PEInfo/ExtraneousBytes":
-        winexecobj.set_Extraneous_Bytes(process_numerical_value(common.IntegerObjectPropertyType(datatype=None), content_string, condition))
+    elif "/PEInfo/BaseAddress" in search_string:
+        headers = PEHeaders()
+        opt = PEOptionalHeader()
+        set_field(opt, "base_of_code", content_string, condition)
+        headers.optional_header = opt
+        winexec.headers = headers
+    elif "/Exports/ExportedFunctions/string" in search_string:
+        func = PEExportedFunction()
+        funclist = PEExportedFunctions(func)
+        exports.exported_functions = funclist
+        winexec.exports = exports
+        set_field(func, "function_name", content_string, condition)
     elif search_string == "FileItem/PEInfo/ImportedModules/Module/ImportedFunctions/string" or search_string == "DriverItem/PEInfo/ImportedModules/Module/ImportedFunctions/string":
-        imports = winexecutablefileobj.PEImportListType()
-        peimport = winexecutablefileobj.PEImportType()
-        importfunlist = winexecutablefileobj.PEImportedFunctionsType()
-        importfun = winexecutablefileobj.PEImportedFunctionType()
-        importfun.set_Function_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        importfunlist.add_Imported_Function(importfun)
-        peimport.set_Imported_Functions(importfunlist)
-        imports.add_Import(peimport)
-        winexecobj.set_Imports(imports)
-    elif search_string == "FileItem/PEInfo/ImportedModules/Module/Name" or search_string == "DriverItem/PEInfo/ImportedModules/Module/Name":
-        imports = winexecutablefileobj.PEImportListType()
-        peimport = winexecutablefileobj.PEImportType()
-        peimport.set_File_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        imports.add_Import(peimport)
-        winexecobj.set_Imports(imports)
-    elif search_string == "FileItem/PEInfo/PEChecksum/PEFileRaw" or search_string == "DriverItem/PEInfo/PEChecksum/PEFileRaw":
-        checksum = winexecutablefileobj.PEChecksumType()
-        checksum.set_PE_File_Raw(process_numerical_value(common.LongObjectPropertyType(datatype=None), content_string, condition))
-        winexecobj.set_PE_Checksum(checksum)
-    elif search_string == "FileItem/PEInfo/PETimeStamp" or search_string == "DriverItem/PEInfo/PETimeStamp":
-        headers = winexecutablefileobj.PEHeadersType()
-        fileheader = winexecutablefileobj.PEFileHeaderType()
-        fileheader.set_Time_Date_Stamp(common.DateTimeObjectPropertyType(datatype=None, condition=condition, valueOf_=content_string))
-        headers.set_File_Header(fileheader)
-        winexecobj.set_Headers(headers)
-    elif search_string == "FileItem/PEInfo/Sections/Section/DetectedCharacteristics" or search_string == "DriverItem/PEInfo/Sections/Section/DetectedCharacteristics":
-        seclist = winexecutablefileobj.PESectionListType()
-        sec = winexecutablefileobj.PESectionType()
-        sechdr = winexecutablefileobj.PESectionHeaderStructType()
-        sechdr.set_Characteristics(process_numerical_value(common.HexBinaryObjectPropertyType(datatype=None), content_string, condition))
-        sec.set_Section_Header(sechdr)
-        seclist.add_Section(sec)
-        winexecobj.set_Sections(seclist)
+        import_ = PEImport()
+        imports = PEImportList(import_)
+        func = PEImportedFunction()
+        funcs = PEImportedFunctions(func)
+        import_.imported_functions = funcs
+        winexec.imports = imports
+        set_field(func, "function_name", content_string, condition)
+    elif "/PEInfo/ImportedModules/Module/Name" in search_string:
+        import_ = PEImport()
+        imports = PEImportList(import_)
+        winexec.imports = imports
+        set_field(import_, "file_name", content_string, condition)
+    elif "/PEInfo/PETimeStamp" in search_string:
+        header = PEFileHeader()
+        headers = PEHeaders()
+        headers.file_header = header
+        winexec.headers = headers
+        set_field(header, "time_date_stamp", content_string, condition)
+    elif "/PEInfo/Sections/Section/DetectedCharacteristics" in search_string:
+        section = PESection()
+        sections = PESectionList(section)
+        header  = PESectionHeaderStruct()
+        section.section_header = header
+        winexec.sections = sections
+        set_field(header, "characteristics", content_string, condition)
     else:
         return None
     
@@ -1379,7 +1323,8 @@ def create_account_obj(search_string, content_string, condition):
         return None
     
     return account
- 
+
+
 def create_win_memory_page_obj(search_string, content_string, condition):
     from cybox.objects.win_memory_page_region_object import WinMemoryPageRegion
 
@@ -1392,133 +1337,67 @@ def create_win_memory_page_obj(search_string, content_string, condition):
     return page
 
 
-def createWinProcessObj(search_string, content_string, condition):
-    #Create the Win process object
-    winprocobj = winprocessobj.WindowsProcessObjectType()
+def create_win_process_obj(search_string, content_string, condition):
+    from cybox.objects import win_process_object
+    from cybox.common import hashes
 
-    #Assume the IOC indicator value can be mapped to a CybOx type
-    valueset = True
-        
-    if search_string == "ProcessItem/HandleList/Handle/AccessMask":
-        handle_list = winhandleobj.WindowsHandleListType()
-        handle = winhandleobj.WindowsHandleObjectType()
-        handle.set_Access_Mask(process_numerical_value(common.UnsignedLongObjectPropertyType(datatype=None), content_string, condition))
-        handle_list.add_Handle(handle)
-        winprocobj.set_Handle_List(handle_list) 
-    elif search_string == "ProcessItem/HandleList/Handle/HandleCount":
-        valueset = False
-    elif search_string == "ProcessItem/HandleList/Handle/Index":
-        handle_list = winhandleobj.WindowsHandleListType()
-        handle = winhandleobj.WindowsHandleObjectType()
-        handle.set_ID(process_numerical_value(common.UnsignedIntegerObjectPropertyType(datatype=None), content_string, condition))
-        handle_list.add_Handle(handle)
-        winprocobj.set_Handle_List(handle_list)
-    elif search_string == "ProcessItem/HandleList/Handle/Name":
-        handle_list = winhandleobj.WindowsHandleListType()
-        handle = winhandleobj.WindowsHandleObjectType()
-        handle.set_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        handle_list.add_Handle(handle)
-        winprocobj.set_Handle_List(handle_list)
-    elif search_string == "ProcessItem/HandleList/Handle/ObjectAddress":
-        handle_list = winhandleobj.WindowsHandleListType()
-        handle = winhandleobj.WindowsHandleObjectType()
-        handle.set_Object_Address(process_numerical_value(common.UnsignedLongObjectPropertyType(datatype=None), content_string, condition))
-        handle_list.add_Handle(handle)
-        winprocobj.set_Handle_List(handle_list)
-    elif search_string == "ProcessItem/HandleList/Handle/PointerCount":
-        handle_list = winhandleobj.WindowsHandleListType()
-        handle = winhandleobj.WindowsHandleObjectType()
-        handle.set_Pointer_Count(process_numerical_value(common.UnsignedLongObjectPropertyType(datatype=None), content_string, condition))
-        handle_list.add_Handle(handle)
-        winprocobj.set_Handle_List(handle_list)
-    elif search_string == "ProcessItem/HandleList/Handle/Type":
-        handle_list = winhandleobj.WindowsHandleListType()
-        handle = winhandleobj.WindowsHandleObjectType()
-        handle.set_Type(common.StringObjectPropertyType(datatype='string', condition=condition, valueOf_=sanitize(content_string)))
-        handle_list.add_Handle(handle)
-        winprocobj.set_Handle_List(handle_list)
-    elif search_string.count("DigitalSignature") > 0:
-        valueset = False
-    elif search_string == "ProcessItem/SectionList/MemorySection/Injected":
-        memory_section_list = winprocessobj.MemorySectionListType()
-        memory_section = memoryobj.MemoryObjectType()
-        memory_section.set_is_injected(content_string)
-        memory_section_list.add_Memory_Section(memory_section)
-        winprocobj.set_Section_List(memory_section_list)
-    elif search_string == "ProcessItem/SectionList/MemorySection/Mapped":
-        memory_section_list = winprocessobj.MemorySectionListType()
-        memory_section = memoryobj.MemoryObjectType()
-        memory_section.set_is_mapped(content_string)
-        memory_section_list.add_Memory_Section(memory_section)
-        winprocobj.set_Section_List(memory_section_list)
-    elif search_string == "ProcessItem/SectionList/MemorySection/Md5sum":
-        hashes = common.HashListType()
-        md5hash = common.HashType()
-        md5hash.set_Type(common.ControlledVocabularyStringType(valueOf_='MD5', xsi_type='cyboxVocabs:HashNameVocab-1.0'))
-        md5hash.set_Simple_Hash_Value(process_numerical_value(common.HexBinaryObjectPropertyType(datatype=None), content_string, condition))
-        hashes.add_Hash(md5hash)
-        memory_section_list = winprocessobj.MemorySectionListType()
-        memory_section = memoryobj.MemoryObjectType()
-        memory_section.set_Hashes(hashes)
-        memory_section_list.add_Memory_Section(memory_section)
-        winprocobj.set_Section_List(memory_section_list)
-    elif search_string == "ProcessItem/SectionList/MemorySection/Name":
-        memory_section_list = winprocessobj.MemorySectionListType()
-        memory_section = memoryobj.MemoryObjectType()
-        memory_section.set_Name(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-        memory_section_list.add_Memory_Section(memory_section)
-        winprocobj.set_Section_List(memory_section_list)
-    elif search_string.count("PEInfo") > 0:
-        return createWinExecObj(search_string, content_string, condition)
+    proc = win_process_object.WinProcess()
+
+    handle_attrmap = {
+        "ProcessItem/HandleList/Handle/AccessMask": "access_mask",
+        "ProcessItem/HandleList/Handle/Index": "id_",
+        "ProcessItem/HandleList/Handle/Name": "name",
+        "ProcessItem/HandleList/Handle/ObjectAddress": "object_address",
+        "ProcessItem/HandleList/Handle/PointerCount": "pointer_count",
+        "ProcessItem/HandleList/Handle/Type": "type_",
+    }
+
+    memory_attrmap = {
+        "ProcessItem/SectionList/MemorySection/Injected": "is_injected",
+        "ProcessItem/SectionList/MemorySection/Mapped": "is_mapped",
+        "ProcessItem/SectionList/MemorySection/Name": "name",
+        "ProcessItem/SectionList/MemorySection/RegionSize": "region_size",
+        "ProcessItem/SectionList/MemorySection/RegionStart": "region_start",
+    }
+
+    hash_attrmap = {
+        "ProcessItem/SectionList/MemorySection/Md5sum": "md5",
+        "ProcessItem/SectionList/MemorySection/Sha1Sum": "sha1",
+        "ProcessItem/SectionList/MemorySection/Sha256Sum": "sha256",
+    }
+
+    proc_attrmap = {
+        "ProcessItem/SecurityID": "security_id",
+        "ProcessItem/SecurityType": "security_type"
+    }
+
+    if "/PEInfo" in search_string:
+        return create_pefile_obj(search_string, content_string, condition)
     elif search_string == "ProcessItem/SectionList/MemorySection/Protection":
-        createWinMemoryPageObj(search_string, content_string, condition)
-    elif search_string == "ProcessItem/SectionList/MemorySection/RawFlags":
-        valueset = False
-    elif search_string == "ProcessItem/SectionList/MemorySection/RegionSize":
-        memory_section_list = winprocessobj.MemorySectionListType()
-        memory_section = memoryobj.MemoryObjectType()
-        memory_section.set_Region_Size(process_numerical_value(common.UnsignedLongObjectPropertyType(datatype=None), content_string, condition))
-        memory_section_list.add_Memory_Section(memory_section)
-        winprocobj.set_Section_List(memory_section_list)
-    elif search_string == "ProcessItem/SectionList/MemorySection/RegionStart":
-        memory_section_list = winprocessobj.MemorySectionListType()
-        memory_section = memoryobj.MemoryObjectType()
-        memory_section.set_Region_Start_Address(process_numerical_value(common.HexBinaryObjectPropertyType(datatype=None), content_string, condition))
-        memory_section_list.add_Memory_Section(memory_section)
-        winprocobj.set_Section_List(memory_section_list)
-    elif search_string == "ProcessItem/SectionList/MemorySection/Sha1Sum":
-        hashes = common.HashListType()
-        sha1hash = common.HashType()
-        sha1hash.set_Type(common.ControlledVocabularyStringType(valueOf_='SHA1', xsi_type='cyboxVocabs:HashNameVocab-1.0'))
-        sha1hash.set_Simple_Hash_Value(process_numerical_value(common.HexBinaryObjectPropertyType(datatype=None), content_string, condition))
-        hashes.add_Hash(sha1hash)
-        memory_section_list = winprocessobj.MemorySectionListType()
-        memory_section = memoryobj.MemoryObjectType()
-        memory_section.set_Hashes(hashes)
-        memory_section_list.add_Memory_Section(memory_section)
-        winprocobj.set_Section_List(memory_section_list)
-    elif search_string == "ProcessItem/SectionList/MemorySection/Sha256Sum":
-        hashes = common.HashListType()
-        sha256hash = common.HashType()
-        sha256hash.set_Type(common.ControlledVocabularyStringType(valueOf_='SHA256', xsi_type='cyboxVocabs:HashNameVocab-1.0'))
-        sha256hash.set_Simple_Hash_Value(process_numerical_value(common.HexBinaryObjectPropertyType(datatype=None), content_string, condition))
-        hashes.add_Hash(sha256hash)
-        memory_section_list = winprocessobj.MemorySectionListType()
-        memory_section = memoryobj.MemoryObjectType()
-        memory_section.set_Hashes(hashes)
-        memory_section_list.add_Memory_Section(memory_section)
-        winprocobj.set_Section_List(memory_section_list)
-    elif search_string == "ProcessItem/SecurityID":
-        winprocobj.set_Security_ID(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
-    elif search_string == "ProcessItem/SecurityType":
-        winprocobj.set_Security_Type(common.StringObjectPropertyType(datatype=None, condition=condition, valueOf_=sanitize(content_string)))
+        create_win_memory_page_obj(search_string, content_string, condition)
+    elif search_string in proc_attrmap:
+        set_field(proc, proc_attrmap[search_string], content_string, condition)
+    elif search_string in handle_attrmap:
+        handle = win_process_object.WinHandle()
+        handles = win_process_object.WinHandleList(handle)
+        proc.handle_list = handles
+        set_field(handle, handle_attrmap[search_string], content_string, condition)
+    elif search_string in memory_attrmap:
+        section = win_process_object.Memory()
+        sections = win_process_object.MemorySectionList(section)
+        proc.section_list = sections
+        set_field(section, memory_attrmap[search_string], content_string, condition)
+    elif search_string in hash_attrmap:
+        hashlist = hashes.HashList()
+        section = win_process_object.Memory()
+        section.hashes = hashlist
+        sections = win_process_object.MemorySectionList(section)
+        proc.section_list = sections
+        set_field(hashlist, hash_attrmap[search_string], content_string, condition)
+    else:
+        return None
 
-    if valueset and winprocobj.hasContent_():
-        winprocobj.set_xsi_type('WinProcessObj:WindowsProcessObjectType')
-    elif not valueset:
-        winprocobj = None
-
-    return winprocobj
+    return proc
 
 
 OBJECT_FUNCS = {
@@ -1534,17 +1413,12 @@ OBJECT_FUNCS = {
     'PortItem': create_port_obj,
     'PrefetchItem': create_prefetch_obj,
     'ProcessItem': create_process_obj,
-    'RegistryItem': createRegObj,
+    'RegistryItem': create_registry_obj,
     'RouteEntryItem': create_net_route_obj,
-    'ServiceItem': createServiceObj,
-    'SystemInfoItem': createSystemObj,
-    'SystemRestoreItem': createSystemRestoreObj,
-    'TaskItem':createWinTaskObject,
-    'UserItem': createUserObj,
-    'VolumeItem': createVolumeObj
+    'ServiceItem': create_service_obj,
+    'SystemInfoItem': create_system_object,
+    'SystemRestoreItem': create_system_restore_obj,
+    'TaskItem': create_win_task_obj,
+    'UserItem': create_user_obj,
+    'VolumeItem': create_volume_obj
 }
-
-#Set the correct attributes for any range values
-
-
-#Encase any strings with XML escape characters in the proper tags
