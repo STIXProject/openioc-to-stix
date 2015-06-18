@@ -6,11 +6,13 @@ import logging
 
 # python-cybox
 from cybox import utils
-from cybox.common.properties import  String, _LongBase, _IntegerBase, _FloatBase
-
+from cybox.common.properties import _LongBase, _IntegerBase, _FloatBase
 
 # Used in set_field() method
 NUMERIC_FIELD_BASES = (_FloatBase, _IntegerBase, _LongBase)
+
+# Used for CDATA wrapping field values.
+XML_RESERVED_CHARS  = ('<', '>', "'", '"', '&')
 
 # Module logger
 LOG = logging.getLogger(__name__)
@@ -35,15 +37,13 @@ def is_numeric(obj, attrname):
 
 
 def sanitize(string):
-    chars = ('<', '>', "'", '"', '&')
-
     if not isinstance(string, basestring):
         return string
 
     # Remove CDATA wrapper if it existed.
     string = utils.unwrap_cdata(string)
 
-    if any(c in string for c in chars):
+    if any(c in string for c in XML_RESERVED_CHARS):
         return utils.wrap_cdata(string)
     else:
         return string
@@ -296,6 +296,7 @@ def create_email_obj(search_string, content_string, condition):
 
 
 def create_win_event_log_obj(search_string, content_string, condition):
+    from cybox.common.properties import String
     from cybox.objects.win_event_log_object import WinEventLog, UnformattedMessageList
 
     eventlog = WinEventLog()
@@ -721,6 +722,7 @@ def create_registry_obj(search_string, content_string, condition):
 def create_service_obj(search_string, content_string, condition):
     from cybox.objects.win_service_object import WinService, ServiceDescriptionList
     from cybox.common.hashes import  HashList
+    from cybox.common.properties import String
 
     hashlist = HashList()
     service = WinService()
@@ -855,6 +857,7 @@ def create_system_object(search_string, content_string, condition):
 
 def create_system_restore_obj(search_string, content_string, condition):
     from cybox.objects.win_system_restore_object import WinSystemRestore, HiveList
+    from cybox.common.properties import String
 
     restore = WinSystemRestore()
 
@@ -929,6 +932,7 @@ def create_user_obj(search_string, content_string, condition):
 
 def create_volume_obj(search_string, content_string, condition):
     from cybox.objects.volume_object import Volume, FileSystemFlagList
+    from cybox.common.properties import String
 
     attrmap = {
         "VolumeItem/ActualAvailableAllocationUnits": "actual_available_allocation_units",
