@@ -4,64 +4,14 @@
 # builtin
 import logging
 
-# python-cybox
-from cybox import utils
-from cybox.common.properties import _LongBase, _IntegerBase, _FloatBase
+# external
+from cybox.core import Object
 
-# Used in set_field() method
-NUMERIC_FIELD_BASES = (_FloatBase, _IntegerBase, _LongBase)
-
-# Used for CDATA wrapping field values.
-XML_RESERVED_CHARS  = ('<', '>', "'", '"', '&')
+# internal
+from . import xml, utils
 
 # Module logger
 LOG = logging.getLogger(__name__)
-
-
-def partial_match(dict_, key):
-    for k, v in dict_.iteritems():
-        if k in key:
-            return v
-
-
-def is_numeric(obj, attrname):
-    klass = obj.__class__
-
-    field = getattr(klass, attrname)
-    field_type = field.type_
-
-    if not field_type:
-        return False
-
-    return any(issubclass(field_type, base) for base in NUMERIC_FIELD_BASES)
-
-
-def sanitize(string):
-    if not isinstance(string, basestring):
-        return string
-
-    # Remove CDATA wrapper if it existed.
-    string = utils.unwrap_cdata(string)
-
-    if any(c in string for c in XML_RESERVED_CHARS):
-        return utils.wrap_cdata(string)
-    else:
-        return string
-
-
-def create_object(search_string, content_string, condition):
-    retval  = None
-    key     = search_string.split('/', 1)[0]
-
-    if key in OBJECT_FUNCS:
-        # Get the object creation function for the key
-        makefunc = OBJECT_FUNCS[key]
-        retval   = makefunc(search_string, content_string, condition)
-
-    if retval is None:
-        LOG.debug("Unable to map %s to CybOX Object.", search_string)
-
-    return retval
 
 
 def _assert_field(obj, attrname):
@@ -75,14 +25,15 @@ def _assert_field(obj, attrname):
 
     raise AttributeError("Object has no attribute: %s" % attrname)
 
+
 def _set_field(obj, attrname, value, condition=None):
 
     # Set the attribute
-    setattr(obj, attrname, sanitize(value))
+    setattr(obj, attrname, xml.sanitize(value))
 
     attr = getattr(obj, attrname)
 
-    if condition:
+    if hasattr(attr, 'condition') and condition:
         attr.condition = condition
 
     return attr
@@ -114,7 +65,7 @@ def _set_numeric_field(obj, attrname, value, condition=None):
 def set_field(obj, attrname, value, condition=None):
     _assert_field(obj, attrname)
 
-    if is_numeric(obj, attrname):
+    if utils.is_numeric(obj, attrname):
         return _set_numeric_field(obj, attrname, value, condition)
     else:
         return _set_field(obj, attrname, value, condition)
@@ -155,7 +106,7 @@ def create_disk_obj(search_string, content_string, condition):
     else:
         return None
 
-    return disk
+    return Object(disk)
 
 def create_dns_obj(search_string, content_string, condition):
     from cybox.objects.dns_record_object import DNSRecord
@@ -184,7 +135,7 @@ def create_dns_obj(search_string, content_string, condition):
     entry.dns_entry = record
     cache.dns_cache_entry = entry
 
-    return cache
+    return Object(cache)
 
 def create_driver_obj(search_string, content_string, condition):
     from cybox.objects.win_driver_object import WinDriver, DeviceObjectStruct, DeviceObjectList
@@ -231,7 +182,7 @@ def create_driver_obj(search_string, content_string, condition):
     else:
         return None
 
-    return windriver
+    return Object(windriver)
 
 def create_email_obj(search_string, content_string, condition):
     from cybox.objects.file_object import File
@@ -242,7 +193,7 @@ def create_email_obj(search_string, content_string, condition):
     email       = EmailMessage()
     header      = EmailHeader()
     received    = ReceivedLine()
-    attachment  = File()
+    attachment  = None
 
     file_attrmap = {
         "Email/Attachment/Name": "file_name",
@@ -274,10 +225,10 @@ def create_email_obj(search_string, content_string, condition):
         "Email/ReplyTo": "reply_to"  # Not a standard OpenIOC indicator term
     }
 
-
     if search_string in email_attrmap:
         set_field(email, email_attrmap[search_string], content_string, condition)
     elif search_string in file_attrmap:
+        attachment = File()
         set_field(attachment, file_attrmap[search_string], content_string, condition)
         email.attachments = Attachments(attachment.parent.id_)
     elif search_string in header_attrmap:
@@ -289,8 +240,11 @@ def create_email_obj(search_string, content_string, condition):
     else:
         return None
 
-    if has_content(attachment):
-        return [email, attachment]
+    if not attachment:
+        return Object(email)
+
+    email = Object(email)
+    email.add_related(attachment)
 
     return email
 
@@ -325,13 +279,13 @@ def create_win_event_log_obj(search_string, content_string, condition):
     if search_string in attrmap:
         set_field(eventlog, attrmap[search_string], content_string, condition)
     elif search_string == "EventLogItem/unformattedMessage/string":
-        s = String(sanitize(content_string))
+        s = String(xml.sanitize(content_string))
         s.condition = condition
         eventlog.unformatted_message_list = UnformattedMessageList(s)
     else:
         return None
 
-    return eventlog
+    return Object(eventlog)
 
 def create_file_obj(search_string, content_string, condition):
     from cybox.objects.file_object import File
@@ -384,12 +338,12 @@ def create_file_obj(search_string, content_string, condition):
         return create_pefile_obj(search_string, content_string, condition)
     elif "/StringList/string" in search_string:
         extracted_features = ExtractedFeatures()
-        extracted_features.strings = ExtractedStrings(sanitize(content_string))
+        extracted_features.strings = ExtractedStrings(xml.sanitize(content_string))
         f.extracted_features = extracted_features
     else:
         return None
 
-    return f
+    return Object(f)
 
 def create_hook_obj(search_string, content_string, condition):
     from cybox.objects.win_kernel_hook_object import WinKernelHook
@@ -431,7 +385,7 @@ def create_hook_obj(search_string, content_string, condition):
     else:
         return None
 
-    return hook
+    return Object(hook)
 
 def create_library_obj(search_string, content_string, condition):
     from cybox.objects.library_object import Library
@@ -450,7 +404,7 @@ def create_library_obj(search_string, content_string, condition):
     else:
         return None
 
-    return library
+    return Object(library)
 
 
 def create_network_connection_obj(search_string, content_string, condition):
@@ -514,7 +468,7 @@ def create_network_connection_obj(search_string, content_string, condition):
     else:
         return None
 
-    return net
+    return Object(net)
     
 def create_net_route_obj(search_string, content_string, condition):
     from cybox.objects.network_route_entry_object import NetworkRouteEntry
@@ -549,7 +503,7 @@ def create_net_route_obj(search_string, content_string, condition):
     else:
         return None
 
-    return net
+    return Object(net)
 
 
 def create_port_obj(search_string, content_string, condition):
@@ -572,7 +526,7 @@ def create_port_obj(search_string, content_string, condition):
     else:
         return None
 
-    return port
+    return Object(port)
 
 def create_prefetch_obj(search_string, content_string, condition):
     from cybox.common.properties import String
@@ -601,13 +555,13 @@ def create_prefetch_obj(search_string, content_string, condition):
         set_field(volume, volume_attrmap[search_string], content_string, condition)
         prefetch.volume = volume
     elif search_string == "PrefetchItem/AccessedFileList/AccessedFile":
-        s = String(sanitize(content_string))
+        s = String(xml.sanitize(content_string))
         s.condition = condition
         prefetch.accessed_file_list = AccessedFileList(s)
     else:
         return None
 
-    return prefetch
+    return Object(prefetch)
 
 def create_process_obj(search_string, content_string, condition):
     from cybox.common import ExtractedFeatures, ExtractedStrings, ExtractedString
@@ -674,7 +628,7 @@ def create_process_obj(search_string, content_string, condition):
     else:
         return None
 
-    return proc
+    return Object(proc)
 
 def create_registry_obj(search_string, content_string, condition):
     from cybox.objects.win_registry_key_object import (
@@ -711,13 +665,13 @@ def create_registry_obj(search_string, content_string, condition):
         elif "\\" not in content_string:
             set_field(key, "hive", content_string, condition)
         else:
-            hive, key = content_string.split("\\", 1)
-            set_field(key, "hive", hive, condition='Equals')
-            set_field(key, "key", key, condition)
+            hiveval, keyval = content_string.split("\\", 1)
+            set_field(key, "hive", hiveval, condition='Equals')
+            set_field(key, "key", keyval, condition)
     else:
         return None
 
-    return key
+    return Object(key)
 
 def create_service_obj(search_string, content_string, condition):
     from cybox.objects.win_service_object import WinService, ServiceDescriptionList
@@ -761,12 +715,12 @@ def create_service_obj(search_string, content_string, condition):
         set_field(hashlist, hashmap[search_string], content_string, condition)
         service.service_dll_hashes = hashlist
     elif search_string == "ServiceItem/description":
-        s = String(sanitize(content_string))
+        s = String(xml.sanitize(content_string))
         service.description_list = ServiceDescriptionList(s)
     else:
         return None
 
-    return service
+    return Object(service)
 
 
 def create_system_object(search_string, content_string, condition):
@@ -836,23 +790,23 @@ def create_system_object(search_string, content_string, condition):
     elif search_string in winsys_keys:
         return create_win_system_obj(search_string, content_string, condition)
     elif search_string == 'SystemInfoItem/networkArray/networkInfo/dhcpServerArray/dhcpServer':
-        addr = Address(sanitize(content_string), category=Address.CAT_IPV4)
+        addr = Address(xml.sanitize(content_string), category=Address.CAT_IPV4)
         iface.dhcp_server_list = DHCPServerList(addr)
         system.network_interface_list = NetworkInterfaceList(iface)
     elif search_string == 'SystemInfoItem/networkArray/networkInfo/ipArray/ipInfo/ipAddress':
-        addr = Address(sanitize(content_string), category=Address.CAT_IPV4)
+        addr = Address(xml.sanitize(content_string), category=Address.CAT_IPV4)
         ipinfo.ip_address = addr
         iface.ip_list = IPInfoList(ipinfo)
         system.network_interface_list = NetworkInterfaceList(iface)
     elif content_string == 'SystemInfoItem/networkArray/networkInfo/ipArray/ipInfo/subnetMask':
-        addr = Address(sanitize(content_string), category=Address.CAT_IPV4_NETMASK)
+        addr = Address(xml.sanitize(content_string), category=Address.CAT_IPV4_NETMASK)
         ipinfo.subnet_mask = addr
         iface.ip_list = IPInfoList(ipinfo)
         system.network_interface_list = NetworkInterfaceList(iface)
     else:
         return None
 
-    return system
+    return Object(system)
 
 
 def create_system_restore_obj(search_string, content_string, condition):
@@ -881,13 +835,13 @@ def create_system_restore_obj(search_string, content_string, condition):
     if search_string in attrmap:
         set_field(restore, attrmap[search_string], content_string, condition)
     elif content_string == "SystemRestoreItem/RegistryHives/String":
-        s = String(sanitize(content_string))
+        s = String(xml.sanitize(content_string))
         s.condition = condition
         restore.registry_hive_list = HiveList(s)
     else:
         return None
 
-    return restore
+    return Object(restore)
 
 
 def create_user_obj(search_string, content_string, condition):
@@ -928,7 +882,7 @@ def create_user_obj(search_string, content_string, condition):
     else:
         return None
             
-    return user_account
+    return Object(user_account)
 
 def create_volume_obj(search_string, content_string, condition):
     from cybox.objects.volume_object import Volume, FileSystemFlagList
@@ -954,13 +908,13 @@ def create_volume_obj(search_string, content_string, condition):
     elif search_string in attrmap:
         set_field(volume, attrmap[search_string], content_string, condition)
     elif search_string == "VolumeItem/FileSystemFlags":
-        s = String(sanitize(content_string))
+        s = String(xml.sanitize(content_string))
         s.condition = condition
         volume.file_system_flag_list = FileSystemFlagList(s)
     else:
         return None
 
-    return volume
+    return Object(volume)
 
 
 def create_win_system_obj(search_string, content_string, condition):
@@ -980,7 +934,7 @@ def create_win_system_obj(search_string, content_string, condition):
     winsys = WinSystem()
     set_field(winsys, attrmap[search_string], content_string, condition)
 
-    return winsys
+    return Object(winsys)
 
 def create_win_task_obj(search_string, content_string, condition):
     from cybox.objects.win_task_object import (
@@ -1081,7 +1035,7 @@ def create_win_task_obj(search_string, content_string, condition):
     else:
         return None
 
-    return task
+    return Object(task)
 
 
 def create_win_volume_obj(search_string, content_string, condition):
@@ -1093,7 +1047,7 @@ def create_win_volume_obj(search_string, content_string, condition):
     volume = WinVolume()
     set_field(volume, "drive_letter", content_string, condition)
 
-    return volume
+    return Object(volume)
 
 
 def create_unix_file_obj(search_string, content_string, condition):
@@ -1139,7 +1093,7 @@ def create_win_file_obj(search_string, content_string, condition):
     else:
         return None
 
-    return file_
+    return Object(file_)
 
 def create_pefile_obj(search_string, content_string, condition):
     from cybox.common import DigitalSignature
@@ -1216,15 +1170,15 @@ def create_pefile_obj(search_string, content_string, condition):
     if "/PEInfo/ExtraneousBytes" in search_string:
         set_field(winexec, "extraneous_bytes", content_string, condition)
     elif any(k in search_string for k in ds_attrmap):
-        attr = partial_match(ds_attrmap, search_string)
+        attr = utils.partial_match(ds_attrmap, search_string)
         set_field(ds, attr, content_string, condition)
         winexec.digital_signature = ds
     elif any(k in search_string for k in checksum_attrmap):
-        attr = partial_match(checksum_attrmap, search_string)
+        attr = utils.partial_match(checksum_attrmap, search_string)
         set_field(checksum, attr, content_string, condition)
         winexec.pe_checksum = checksum
     elif any(k in search_string for k in exports_attrmap):
-        attr = partial_match(exports_attrmap, search_string)
+        attr = utils.partial_match(exports_attrmap, search_string)
         set_field(exports, attr, content_string, condition)
         winexec.exports = exports
     elif any(k in search_string for k in epsig_attrmap):
@@ -1234,7 +1188,7 @@ def create_pefile_obj(search_string, content_string, condition):
         epsiglist = EntryPointSignatureList(epsig)
         packer.detected_entrypoint_signatures = epsiglist
         winexec.packer_list = packerlist
-        attr = partial_match(epsig_attrmap, search_string)
+        attr = utils.partial_match(epsig_attrmap, search_string)
         set_field(epsig, attr, content_string, condition)
     elif any(k in search_string for k in jmpcode_attrmap):
         epjumpcode = EPJumpCode()
@@ -1242,7 +1196,7 @@ def create_pefile_obj(search_string, content_string, condition):
         packerlist = PackerList(packer)
         packer.ep_jump_codes = epjumpcode
         winexec.packer_list = packerlist
-        attr = partial_match(jmpcode_attrmap, search_string)
+        attr = utils.partial_match(jmpcode_attrmap, search_string)
         set_field(epjumpcode, attr, content_string, condition)
     elif search_string in verinfo_attrmap:
         set_field(verinfo, verinfo_attrmap[search_string], content_string, condition)
@@ -1291,7 +1245,7 @@ def create_pefile_obj(search_string, content_string, condition):
     else:
         return None
     
-    return winexec
+    return Object(winexec)
 
 def create_win_user_obj(search_string, content_string, condition):
     from cybox.objects.win_user_object import WinUser
@@ -1308,7 +1262,7 @@ def create_win_user_obj(search_string, content_string, condition):
     else:
         return None
 
-    return winuser
+    return Object(winuser)
 
 def create_account_obj(search_string, content_string, condition):
     from cybox.objects.account_object import Account
@@ -1326,7 +1280,7 @@ def create_account_obj(search_string, content_string, condition):
     else:
         return None
     
-    return account
+    return Object(account)
 
 
 def create_win_memory_page_obj(search_string, content_string, condition):
@@ -1338,7 +1292,7 @@ def create_win_memory_page_obj(search_string, content_string, condition):
     page = WinMemoryPageRegion()
     set_field(page, "protect", content_string, condition)
 
-    return page
+    return Object(page)
 
 
 def create_win_process_obj(search_string, content_string, condition):
@@ -1401,7 +1355,22 @@ def create_win_process_obj(search_string, content_string, condition):
     else:
         return None
 
-    return proc
+    return Object(proc)
+
+
+def make_object(search_string, content_string, condition):
+    retval  = None
+    key     = search_string.split('/', 1)[0]
+
+    if key in OBJECT_FUNCS:
+        # Get the object creation function for the key
+        makefunc = OBJECT_FUNCS[key]
+        retval   = makefunc(search_string, content_string, condition)
+
+    if retval is None:
+        LOG.debug("Unable to map %s to CybOX Object.", search_string)
+
+    return retval
 
 
 OBJECT_FUNCS = {

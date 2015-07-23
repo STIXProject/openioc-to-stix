@@ -7,7 +7,6 @@ Wraps output of OpenIOC to CybOX Script
 """
 
 # builtin
-import sys
 import logging
 import argparse
 
@@ -21,10 +20,6 @@ from stix.common.vocabs import PackageIntent
 # python-cybox
 from cybox.core import Observables
 from cybox.common import ToolInformationList, ToolInformation
-
-# openioc bindings and utilities
-import openioc
-import openioc_to_cybox
 
 
 __version__ = "0.2"
