@@ -8,6 +8,7 @@ from . import objectify
 from . import xml
 from . import utils
 
+
 # ID format for translated OpenIOC items
 OPENIOC_ID_FMT = "openioc:item-%s"
 
@@ -116,14 +117,12 @@ def to_cybox(infile):
     indicators = openioc.get_top_indicators(iocdoc)
 
     if len(indicators) == 0:
-        msg = "Input document contained no indicator items."
-        raise Exception(msg)
+        raise Exception("Input document contained no indicator items.")
 
     observables = _translate_indicators(indicators)
 
     if not observables:
-        msg = "Input document contained no indicator items compatible with CybOX."
-        raise Exception(msg)
+        raise Exception("Input document contained no indicator items compatible with CybOX.")
 
     obsdoc = Observables(observables)
     return obsdoc
