@@ -8,6 +8,8 @@ from . import objectify
 from . import xml
 from . import utils
 
+# ID format for translated OpenIOC items
+OPENIOC_ID_FMT = "openioc:item-%s"
 
 # Map of IndicatorItem conditions to CybOX operators
 CONDITIONS = {
@@ -16,7 +18,6 @@ CONDITIONS = {
     'contains': 'Contains',
     'containsnot': 'DoesNotContain'
 }
-
 
 LOG = logging.getLogger(__name__)
 
@@ -27,8 +28,7 @@ def _translate_id(id_):
     if not id_:
         return None
 
-    id_ = "openioc:item-" + id_
-    return id_
+    return OPENIOC_ID_FMT % id_
 
 
 def _make_observable(item):
@@ -67,17 +67,8 @@ def _translate_item(item):
 
 
 def _translate_items(items):
-    observables = []
-
-    for item in items:
-        translated = _make_observable(item)
-
-        if not translated:
-            continue
-
-        observables.append(translated)
-
-    return observables
+    observables = (_make_observable(x) for x in items)
+    return [o for o in observables if o is not None]
 
 
 def _indicator_to_observable(indicator):
@@ -112,17 +103,9 @@ def _indicator_to_observable(indicator):
 
 
 def _translate_indicators(indicators):
-    observables = []
-
-    for indicator in indicators:
-        observable = _indicator_to_observable(indicator)
-
-        if utils.is_empty_observable(observable):
-            continue
-
-        observables.append(observable)
-
-    return observables
+    is_empty = utils.is_empty_observable
+    translated = (_indicator_to_observable(x) for x in indicators)
+    return [x for x in translated if not is_empty(x)]
 
 
 def to_cybox(infile):
