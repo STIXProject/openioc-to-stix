@@ -21,8 +21,8 @@ from stix.common.vocabs import PackageIntent
 from cybox.core import Observables
 from cybox.common import ToolInformationList, ToolInformation
 
-
-__version__ = "0.2"
+# internal
+from openioc2stix.version import __version__
 
 
 LOG = logging.getLogger(__name__)
