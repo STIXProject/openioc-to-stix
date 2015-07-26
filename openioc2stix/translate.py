@@ -126,3 +126,8 @@ def to_cybox(infile):
 
     obsdoc = Observables(observables)
     return obsdoc
+
+
+def to_stix(infile):
+    """Converts the `infile` OpenIOC document into a STIX Package."""
+    pass
