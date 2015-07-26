@@ -15,7 +15,7 @@ import logging
 import cybox.utils
 
 # Internal
-import translate
+from openioc2stix import translate
 
 
 __version__ = "0.3"

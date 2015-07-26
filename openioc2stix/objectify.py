@@ -1363,7 +1363,6 @@ def make_object(search_string, content_string, condition):
     key     = search_string.split('/', 1)[0]
 
     if key in OBJECT_FUNCS:
-        # Get the object creation function for the key
         makefunc = OBJECT_FUNCS[key]
         retval   = makefunc(search_string, content_string, condition)
 
