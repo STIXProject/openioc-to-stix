@@ -71,6 +71,15 @@ def tag(ns, name):
 
 
 def sanitize(string):
+    """Sanitize a string input against reserved XML characters
+
+    Args:
+        string: String to be sanitized
+
+    Returns: If invalid char was found, string is wrapped in <![CDATA[string]]>
+             Otherwise original string is returned.
+
+    """
     if not isinstance(string, basestring):
         return string
 
