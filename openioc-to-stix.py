@@ -83,4 +83,4 @@ def main():
     write_package(stix_package, outfn=args.outfile)
 
 if __name__ == "__main__":
-    main()    
+    main()
