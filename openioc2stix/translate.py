@@ -2,12 +2,21 @@ import logging
 
 import cybox.utils
 from cybox.core import Observables, Observable, ObservableComposition
+from stix.common import InformationSource
+from stix.indicator import Indicator
+from stix.core import STIXPackage, STIXHeader
+from stix.common.vocabs import PackageIntent
+
+# python-cybox
+from cybox.common import ToolInformationList, ToolInformation
 
 from . import openioc
 from . import objectify
 from . import xml
 from . import utils
 
+# internal
+from openioc2stix.version import __version__
 
 # ID format for translated OpenIOC items
 OPENIOC_ID_FMT = "openioc:item-%s"
@@ -102,6 +111,21 @@ def _indicator_to_observable(indicator):
 
     return root
 
+def _observable_to_indicator(observable):
+    # Build CybOX tool content
+    tool = ToolInformation(tool_name='OpenIOC to STIX Utility')
+    tool.version = __version__
+
+    # Build Indicator.producer contents
+    producer = InformationSource()
+    producer.tools = ToolInformationList(tool)
+
+    # Build Indicator
+    indicator = Indicator(title="CybOX-represented Indicator Created from OpenIOC File")
+    indicator.producer = producer
+    indicator.add_observable(observable)
+
+    return indicator
 
 def _translate_indicators(indicators):
     is_empty = utils.is_empty_observable
@@ -130,4 +154,22 @@ def to_cybox(infile):
 
 def to_stix(infile):
     """Converts the `infile` OpenIOC document into a STIX Package."""
-    pass
+    observables = to_cybox(infile)
+
+    # Build Indicators from the Observable objects
+    indicators = [_observable_to_indicator(o) for o in observables]
+
+    # Wrap the created Observables in a STIX Package/Indicator
+    stix_package = STIXPackage()
+
+    # Set the Indicators collection
+    stix_package.indicators = indicators
+
+    # Create and write the STIX Header. Warning: these fields have been
+    # deprecated in STIX v1.2!
+    stix_header = STIXHeader()
+    stix_header.package_intent = PackageIntent.TERM_INDICATORS_MALWARE_ARTIFACTS
+    stix_header.description = "CybOX-represented Indicators Translated from OpenIOC File"
+    stix_package.stix_header = stix_header
+
+    return stix_package
