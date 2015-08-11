@@ -4,25 +4,23 @@
 Internal module dedicated to translating observables and indicators
 as well as translating OpenIOC to cybOX and STIX.
 """
+
 import logging
 
 import cybox.utils
 from cybox.core import Observables, Observable, ObservableComposition
-from stix.common import InformationSource
-from stix.indicator import Indicator
-from stix.core import STIXPackage, STIXHeader
-from stix.common.vocabs import PackageIntent
-
-# python-cybox
 from cybox.common import ToolInformationList, ToolInformation
+
+from stix.core import STIXPackage, STIXHeader
+from stix.common import InformationSource
+from stix.common.vocabs import PackageIntent
+from stix.indicator import Indicator
 
 from . import openioc
 from . import objectify
 from . import xml
 from . import utils
-
-# internal
-from openioc2stix.version import __version__
+from . import version
 
 # ID format for translated OpenIOC items
 OPENIOC_ID_FMT = "openioc:item-%s"
@@ -101,7 +99,7 @@ def _indicator_to_observable(indicator):
         indicator: Indicator(s) that will be translated
 
     Return:
-        Composite object containing the translated indicator(s) to observable(s)
+        Composite observable object containing observable(s)
     """
     items  = openioc.get_items(indicator)
     nested = openioc.get_indicators(indicator)
@@ -136,14 +134,14 @@ def _observable_to_indicator_stix(observable):
     """Observable translated to a STIX indicator
 
     Args:
-        observable: Observable that will be translated
+        observable: Observable object that will be translated
 
     Return:
-       Translated indicator with STIX utility and CybOX tags
+        Indicator object with STIX utility and CybOX tags
     """
     # Build STIX tool content
     tool = ToolInformation(tool_name='OpenIOC to STIX Utility')
-    tool.version = __version__
+    tool.version = version.__version__
 
     # Build Indicator.producer contents
     producer = InformationSource()
@@ -163,13 +161,13 @@ def _translate_indicators(indicators):
 
 
 def to_cybox(infile):
-    """Translate the `infile` OpenIOC document into a CybOX Observable.
+    """Translate the `infile` OpenIOC xml document into a CybOX Observable.
 
     Args:
-        infile: OpenIOC file to translate
+        infile: OpenIOC xml filename to translate
 
     Return:
-       All translated observables in the infile document ready to be output to a data stream.
+        Full CybOX xml ready to be output to a data stream
     """
     iocdoc = xml.parse(infile)
     indicators = openioc.get_top_indicators(iocdoc)
@@ -187,13 +185,13 @@ def to_cybox(infile):
 
 
 def to_stix(infile):
-    """Converts the `infile` OpenIOC document into a STIX Package.
+    """Converts the `infile` OpenIOC xml document into a STIX Package.
 
     Args:
-        infile: OpenIOC file to translate
+        infile: OpenIOC xml filename to translate
 
     Return:
-       STIX package ready to be output to a data stream.
+       STIX xml package ready to be output to a data stream.
     """
     observables = to_cybox(infile)
 

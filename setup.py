@@ -32,7 +32,7 @@ with open(fn_readme) as f:
     readme = f.read()
 
 install_requires = ['lxml>=3.3.5',
-                    'cybox>=2.1.0.11',
+                    'cybox>=2.1.0.12',
                     'stix>=1.2.0.0']
 
 # Python 2.6 does not come with argparse

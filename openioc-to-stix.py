@@ -5,15 +5,17 @@
 OpenIOC to STIX Script
 Wraps output of OpenIOC to CybOX Script
 """
-
 # builtin
 import logging
 import argparse
 
 # python-stix
+from stix import utils
+
+# Internal
 from openioc2stix import translate
 from openioc2stix.version import __version__
-from stix import utils
+
 
 LOG = logging.getLogger(__name__)
 
