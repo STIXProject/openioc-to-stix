@@ -23,6 +23,7 @@ LOG = logging.getLogger(__name__)
 EXIT_SUCCESS = 0
 EXIT_FAILURE = 1
 
+
 def get_arg_parser():
     desc = "OpenIOC to STIX v%s" % __version__
     parser = argparse.ArgumentParser(description=desc)
@@ -83,6 +84,7 @@ def main():
 
     # Write the STIXPackage to a output file
     write_package(stix_package, outfn=args.outfile)
+
 
 if __name__ == "__main__":
     main()

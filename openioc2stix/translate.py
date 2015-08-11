@@ -22,6 +22,7 @@ from . import xml
 from . import utils
 from . import version
 
+
 # ID format for translated OpenIOC items
 OPENIOC_ID_FMT = "openioc:item-%s"
 
@@ -51,8 +52,8 @@ def _make_observable(item):
     Args:
         item: Individual indicator item
 
-    Return:
-        The observable object
+    Returns:
+        A cybox.core.Observable object
     """
     content   = openioc.get_content(item)
     search    = openioc.get_search(item)
@@ -98,8 +99,9 @@ def _indicator_to_observable(indicator):
     Args:
         indicator: Indicator(s) that will be translated
 
-    Return:
-        Composite observable object containing observable(s)
+    Returns:
+        A cybox.core.Observable object if `indicator` can be translated.
+        None is returned if `indicator` contains invalid or untranslatable items.
     """
     items  = openioc.get_items(indicator)
     nested = openioc.get_indicators(indicator)
@@ -131,12 +133,12 @@ def _indicator_to_observable(indicator):
     return root
 
 def _observable_to_indicator_stix(observable):
-    """Observable translated to a STIX indicator
+    """Translate a CybOX Observable into a STIX Indicator.
 
     Args:
         observable: Observable object that will be translated
 
-    Return:
+    Returns:
         Indicator object with STIX utility and CybOX tags
     """
     # Build STIX tool content
@@ -166,7 +168,7 @@ def to_cybox(infile):
     Args:
         infile: OpenIOC xml filename to translate
 
-    Return:
+    Returns:
         Full CybOX xml ready to be output to a data stream
     """
     iocdoc = xml.parse(infile)
@@ -190,7 +192,7 @@ def to_stix(infile):
     Args:
         infile: OpenIOC xml filename to translate
 
-    Return:
+    Returns:
        STIX xml package ready to be output to a data stream.
     """
     observables = to_cybox(infile)
