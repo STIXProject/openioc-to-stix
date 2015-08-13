@@ -38,6 +38,15 @@ LOG = logging.getLogger(__name__)
 
 
 def _translate_id(id_):
+    """Process an id which is normalized and has 'openioc:item-' prepended
+
+    Args:
+        id: String to uniquely represent an observable or indicator
+
+    Returns:
+        If there is no id, None is returned.
+        Otherwise a normalized id with 'openioc:item-' prepended is returned.
+    """
     id_ = utils.normalize_id(id_)
 
     if not id_:
@@ -85,10 +94,26 @@ def _make_observable(item):
 
 
 def _translate_item(item):
+    """Process an indicator item and creates a single observable from it.
+
+    Args:
+        item: Individual indicator item
+
+    Returns:
+        A cybox.core.Observable object
+    """
     return _make_observable(item)
 
 
 def _translate_items(items):
+    """Process an indicator item(s) and creates an observable list from it.
+
+    Args:
+        item: Indicator item(s)
+
+    Returns:
+        cybox.core.Observable object list.
+    """
     observables = (_make_observable(x) for x in items)
     return [o for o in observables if o is not None]
 
@@ -157,6 +182,14 @@ def _observable_to_indicator_stix(observable):
     return indicator
 
 def _translate_indicators(indicators):
+    """Process an indicator item(s) and creates an observable list from it.
+
+    Args:
+        item: Indicator item(s)
+
+    Returns:
+        A cybox.core.Observable object list if `indicators` can be translated.
+    """
     is_empty = utils.is_empty_observable
     translated = (_indicator_to_observable(x) for x in indicators)
     return [x for x in translated if not is_empty(x)]
