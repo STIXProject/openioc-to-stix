@@ -2,7 +2,7 @@
 # See LICENSE.txt for complete terms.
 """
 Internal module dedicated to translating observables and indicators
-as well as translating OpenIOC to cybOX and STIX.
+as well as translating OpenIOC to CybOX and STIX.
 """
 
 import logging
@@ -202,7 +202,7 @@ def to_cybox(infile):
         infile: OpenIOC xml filename to translate
 
     Returns:
-        Full CybOX xml ready to be output to a data stream
+        cybox.core.Observables object
     """
     iocdoc = xml.parse(infile)
     indicators = openioc.get_top_indicators(iocdoc)
@@ -226,7 +226,7 @@ def to_stix(infile):
         infile: OpenIOC xml filename to translate
 
     Returns:
-       STIX xml package ready to be output to a data stream.
+       stix.core.STIXPackage object
     """
     observables = to_cybox(infile)
 
