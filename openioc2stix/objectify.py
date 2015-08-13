@@ -21,7 +21,7 @@ def _assert_field(obj, attrname):
         return
 
     if hasattr(klass, attrname):
-       return
+        return
 
     raise AttributeError("Object has no attribute: %s" % attrname)
 
@@ -271,7 +271,7 @@ def create_win_event_log_obj(search_string, content_string, condition):
         "EventLogItem/message": "message",
         "EventLogItem/reserved": "reserved",
         "EventLogItem/source": "source",
-        "EventLogItem/type": "type",
+        "EventLogItem/type": "type_",
         "EventLogItem/user": "user",
         "EventLogItem/writeTime": "write_time"
     }
