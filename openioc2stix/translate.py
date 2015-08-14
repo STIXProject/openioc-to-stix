@@ -11,6 +11,7 @@ import cybox.utils
 from cybox.core import Observables, Observable, ObservableComposition
 from cybox.common import ToolInformationList, ToolInformation
 
+import stix.utils
 from stix.core import STIXPackage, STIXHeader
 from stix.common import InformationSource
 from stix.common.vocabs import PackageIntent
@@ -219,6 +220,7 @@ def to_cybox(infile):
     return obsdoc
 
 
+@stix.utils.silence_warnings
 def to_stix(infile):
     """Converts the `infile` OpenIOC xml document into a STIX Package.
 
