@@ -1,14 +1,7 @@
 <stix:STIX_Package 
-	xmlns:cyboxCommon="http://cybox.mitre.org/common-2"
-	xmlns:cybox="http://cybox.mitre.org/cybox-2"
-	xmlns:cyboxVocabs="http://cybox.mitre.org/default_vocabularies-2"
-	xmlns:AccountObj="http://cybox.mitre.org/objects#AccountObject-2"
 	xmlns:DiskObj="http://cybox.mitre.org/objects#DiskObject-2"
 	xmlns:FileObj="http://cybox.mitre.org/objects#FileObject-2"
-	xmlns:PortObj="http://cybox.mitre.org/objects#PortObject-2"
 	xmlns:ProcessObj="http://cybox.mitre.org/objects#ProcessObject-2"
-	xmlns:UserAccountObj="http://cybox.mitre.org/objects#UserAccountObject-2"
-	xmlns:VolumeObj="http://cybox.mitre.org/objects#VolumeObject-2"
 	xmlns:WinDriverObj="http://cybox.mitre.org/objects#WinDriverObject-3"
 	xmlns:WinEventLogObj="http://cybox.mitre.org/objects#WinEventLogObject-2"
 	xmlns:WinExecutableFileObj="http://cybox.mitre.org/objects#WinExecutableFileObject-2"
@@ -17,154 +10,113 @@
 	xmlns:WinProcessObj="http://cybox.mitre.org/objects#WinProcessObject-2"
 	xmlns:WinRegistryKeyObj="http://cybox.mitre.org/objects#WinRegistryKeyObject-2"
 	xmlns:WinServiceObj="http://cybox.mitre.org/objects#WinServiceObject-2"
-	xmlns:WinVolumeObj="http://cybox.mitre.org/objects#WinVolumeObject-2"
-	xmlns:example="http://example.com"
-	xmlns:openioc="http://openioc.org/"
-	xmlns:incident="http://stix.mitre.org/Incident-1"
+	xmlns:cybox="http://cybox.mitre.org/cybox-2"
+	xmlns:cyboxCommon="http://cybox.mitre.org/common-2"
+	xmlns:cyboxVocabs="http://cybox.mitre.org/default_vocabularies-2"
 	xmlns:indicator="http://stix.mitre.org/Indicator-2"
+	xmlns:openioc="http://openioc.org/openioc"
+	xmlns:stix="http://stix.mitre.org/stix-1"
 	xmlns:stixCommon="http://stix.mitre.org/common-1"
 	xmlns:stixVocabs="http://stix.mitre.org/default_vocabularies-1"
-	xmlns:stix="http://stix.mitre.org/stix-1"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="
-	http://cybox.mitre.org/common-2 http://cybox.mitre.org/XMLSchema/common/2.1/cybox_common.xsd
-	http://cybox.mitre.org/cybox-2 http://cybox.mitre.org/XMLSchema/core/2.1/cybox_core.xsd
-	http://cybox.mitre.org/default_vocabularies-2 http://cybox.mitre.org/XMLSchema/default_vocabularies/2.1/cybox_default_vocabularies.xsd
-	http://cybox.mitre.org/objects#AccountObject-2 http://cybox.mitre.org/XMLSchema/objects/Account/2.1/Account_Object.xsd
-	http://cybox.mitre.org/objects#DiskObject-2 http://cybox.mitre.org/XMLSchema/objects/Disk/2.1/Disk_Object.xsd
-	http://cybox.mitre.org/objects#FileObject-2 http://cybox.mitre.org/XMLSchema/objects/File/2.1/File_Object.xsd
-	http://cybox.mitre.org/objects#PortObject-2 http://cybox.mitre.org/XMLSchema/objects/Port/2.1/Port_Object.xsd
-	http://cybox.mitre.org/objects#ProcessObject-2 http://cybox.mitre.org/XMLSchema/objects/Process/2.1/Process_Object.xsd
-	http://cybox.mitre.org/objects#UserAccountObject-2 http://cybox.mitre.org/XMLSchema/objects/User_Account/2.1/User_Account_Object.xsd
-	http://cybox.mitre.org/objects#VolumeObject-2 http://cybox.mitre.org/XMLSchema/objects/Volume/2.1/Volume_Object.xsd
-	http://cybox.mitre.org/objects#WinDriverObject-3 http://cybox.mitre.org/XMLSchema/objects/Win_Driver/3.0/Win_Driver_Object.xsd
-	http://cybox.mitre.org/objects#WinEventLogObject-2 http://cybox.mitre.org/XMLSchema/objects/Win_Event_Log/2.1/Win_Event_Log_Object.xsd
-	http://cybox.mitre.org/objects#WinExecutableFileObject-2 http://cybox.mitre.org/XMLSchema/objects/Win_Executable_File/2.1/Win_Executable_File_Object.xsd
-	http://cybox.mitre.org/objects#WinFileObject-2 http://cybox.mitre.org/XMLSchema/objects/Win_File/2.1/Win_File_Object.xsd
-	http://cybox.mitre.org/objects#WinKernelHookObject-2 http://cybox.mitre.org/XMLSchema/objects/Win_Kernel_Hook/2.1/Win_Kernel_Hook_Object.xsd
-	http://cybox.mitre.org/objects#WinProcessObject-2 http://cybox.mitre.org/XMLSchema/objects/Win_Process/2.1/Win_Process_Object.xsd
-	http://cybox.mitre.org/objects#WinRegistryKeyObject-2 http://cybox.mitre.org/XMLSchema/objects/Win_Registry_Key/2.1/Win_Registry_Key_Object.xsd
-	http://cybox.mitre.org/objects#WinServiceObject-2 http://cybox.mitre.org/XMLSchema/objects/Win_Service/2.1/Win_Service_Object.xsd
-	http://cybox.mitre.org/objects#WinVolumeObject-2 http://cybox.mitre.org/XMLSchema/objects/Win_Volume/2.1/Win_Volume_Object.xsd
-	http://stix.mitre.org/Incident-1 http://stix.mitre.org/XMLSchema/incident/1.1.1/incident.xsd
-	http://stix.mitre.org/Indicator-2 http://stix.mitre.org/XMLSchema/indicator/2.1.1/indicator.xsd
-	http://stix.mitre.org/common-1 http://stix.mitre.org/XMLSchema/common/1.1.1/stix_common.xsd
-	http://stix.mitre.org/default_vocabularies-1 http://stix.mitre.org/XMLSchema/default_vocabularies/1.1.1/stix_default_vocabularies.xsd
-	http://stix.mitre.org/stix-1 http://stix.mitre.org/XMLSchema/core/1.1.1/stix_core.xsd" id="example:Package-d6c9d77c-5a81-4ad0-85e7-b24db20e4e65" version="1.1.1" timestamp="2014-07-11T11:38:42.886891+00:00">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="openioc:Package-4dc164df-1867-40cd-ae95-7b1875199cd7" version="1.2">
     <stix:STIX_Header>
         <stix:Description>CybOX-represented Indicators Translated from OpenIOC File</stix:Description>
     </stix:STIX_Header>
     <stix:Indicators>
-        <stix:Indicator xsi:type='indicator:IndicatorType' negate="false" version="2.1.1">
+        <stix:Indicator id="openioc:indicator-4e00556a-fffd-49f2-905a-f51deaaa229c" timestamp="2015-08-14T19:32:23.933624+00:00" xsi:type='indicator:IndicatorType'>
             <indicator:Title>CybOX-represented Indicator Created from OpenIOC File</indicator:Title>
-            <indicator:Observable id="openioc:indicator-2e693207-ae90-4f9b-8a31-67f31f1d263c">
-                <cybox:Title>This is a sample IOC that will hit on a number different artifacts present on a Windows computer. This IOC is used to test or illustrate the use of an IOC.</cybox:Title>
-                <cybox:Observable_Source>
-                    <cyboxCommon:Description>OpenIOC File: find_windows.ioc.xml</cyboxCommon:Description>
-                </cybox:Observable_Source>
+            <indicator:Observable id="openioc:item-2e693207-ae90-4f9b-8a31-67f31f1d263c">
                 <cybox:Observable_Composition operator="OR">
-                    <cybox:Observable id="openioc:indicator-item-5ebfad1c-6f1a-472b-ae58-6fdfede0f4e7">
-                        <cybox:Object>
+                    <cybox:Observable id="openioc:Observable-05172108-b969-4c5a-b097-52b5bbd0e823">
+                        <cybox:Object id="openioc:File-630804ff-6ba9-49e6-bbd0-4cab7f183154">
                             <cybox:Properties xsi:type="FileObj:FileObjectType">
                                 <FileObj:Full_Path condition="Contains">\kernel32.dll</FileObj:Full_Path>
                             </cybox:Properties>
                         </cybox:Object>
                     </cybox:Observable>
-                    <cybox:Observable id="openioc:indicator-item-5b79c908-9d4d-4536-8699-9538af1576e8">
-                        <cybox:Object>
+                    <cybox:Observable id="openioc:Observable-59d057c5-b3c6-43f5-8f4d-4d6bd42d0d36">
+                        <cybox:Object id="openioc:File-03456d37-4d1d-4771-bfe9-8961f78fe02b">
                             <cybox:Properties xsi:type="FileObj:FileObjectType">
                                 <FileObj:File_Name condition="Equals">win.ini</FileObj:File_Name>
                             </cybox:Properties>
                         </cybox:Object>
                     </cybox:Observable>
-                    <cybox:Observable id="openioc:indicator-item-d1e188e1-fae6-488d-ba2f-a900abb21f14">
-                        <cybox:Object>
+                    <cybox:Observable id="openioc:Observable-12ca2510-2497-458e-a5ac-3a7bbf59ae28">
+                        <cybox:Object id="openioc:File-5864bfc7-ea1b-437c-812b-53f531ba1c74">
                             <cybox:Properties xsi:type="FileObj:FileObjectType">
                                 <FileObj:File_Extension condition="Contains">evt</FileObj:File_Extension>
                             </cybox:Properties>
                         </cybox:Object>
                     </cybox:Observable>
-                    <cybox:Observable id="openioc:indicator-item-78af913e-a007-4f8a-864f-b543dd7a6d09">
-                        <cybox:Object>
+                    <cybox:Observable id="openioc:Observable-2d3cccf7-e5de-4a78-839b-83e75e99df84">
+                        <cybox:Object id="openioc:Process-6870dcfe-7b18-4eaa-84d7-c87282811aae">
                             <cybox:Properties xsi:type="ProcessObj:ProcessObjectType">
                                 <ProcessObj:Name condition="Equals">explorer.exe</ProcessObj:Name>
                             </cybox:Properties>
                         </cybox:Object>
                     </cybox:Observable>
-                    <cybox:Observable id="openioc:indicator-item-9aaa6f73-5bd5-4dbe-b36f-73ee2e74655d">
-                        <cybox:Object>
+                    <cybox:Observable id="openioc:Observable-72a5562b-d33d-41c1-ab74-f985a5d27789">
+                        <cybox:Object id="openioc:WinEventLog-fc8b0815-fa82-4c0e-93cd-a39c2f2c9949">
                             <cybox:Properties xsi:type="WinEventLogObj:WindowsEventLogObjectType">
                                 <WinEventLogObj:EID condition="Equals">6009</WinEventLogObj:EID>
                             </cybox:Properties>
                         </cybox:Object>
                     </cybox:Observable>
-                    <cybox:Observable id="openioc:indicator-item-16db1a80-af40-45fc-9db6-484bf372213b">
-                        <cybox:Object>
-                            <cybox:Properties xsi:type="UserAccountObj:UserAccountObjectType">
-                                <UserAccountObj:Username condition="Equals">Administrator</UserAccountObj:Username>
-                            </cybox:Properties>
-                        </cybox:Object>
+                    <cybox:Observable id="openioc:Observable-36018ebe-cf1d-41c3-84e3-f60f06d6d744">
+                        <cybox:Description><![CDATA[Error|Ignore. IndicatorItem not translated. Encountered IOC term 'UserItem/Username' , which does not currently map to CybOX.]]></cybox:Description>
                     </cybox:Observable>
-                    <cybox:Observable id="openioc:indicator-item-9a87eb7e-2b26-40a1-a8f6-7afa7d546aeb">
-                        <cybox:Object>
+                    <cybox:Observable id="openioc:Observable-d76ef483-3197-425d-bc42-c1a6548fab76">
+                        <cybox:Object id="openioc:WinService-06bd5d4f-8f6c-4894-8fa8-0581fd6186d2">
                             <cybox:Properties xsi:type="WinServiceObj:WindowsServiceObjectType">
                                 <WinServiceObj:Service_Name condition="Equals">TrkWks</WinServiceObj:Service_Name>
                             </cybox:Properties>
                         </cybox:Object>
                     </cybox:Observable>
-                    <cybox:Observable id="openioc:indicator-item-0f605238-d7e1-4c5b-970c-071e50b82c22">
-                        <cybox:Object>
+                    <cybox:Observable id="openioc:Observable-13f87adf-1c34-4de6-94ec-69ec89d75257">
+                        <cybox:Object id="openioc:WinRegistryKey-955a12a9-62b0-4599-90a0-532f8777055f">
                             <cybox:Properties xsi:type="WinRegistryKeyObj:WindowsRegistryKeyObjectType">
                                 <WinRegistryKeyObj:Key condition="Contains">\DosDevices\C:</WinRegistryKeyObj:Key>
                             </cybox:Properties>
                         </cybox:Object>
                     </cybox:Observable>
-                    <cybox:Observable id="openioc:indicator-item-e0b70fd0-38ac-4da2-a0eb-a9a9bb90e78f">
-                        <cybox:Object>
-                            <cybox:Properties xsi:type="PortObj:PortObjectType">
-                                <PortObj:Port_Value condition="Equals">445</PortObj:Port_Value>
-                            </cybox:Properties>
-                        </cybox:Object>
+                    <cybox:Observable id="openioc:Observable-dc6d5251-474c-41af-a3ba-62abcfa6697e">
+                        <cybox:Description><![CDATA[Error|Ignore. IndicatorItem not translated. Encountered IOC term 'PortItem/localPort' , which does not currently map to CybOX.]]></cybox:Description>
                     </cybox:Observable>
-                    <cybox:Observable id="openioc:indicator-item-faed6244-b531-46e1-9be9-baf19fc977b7">
-                        <cybox:Object>
-                            <cybox:Properties xsi:type="WinVolumeObj:WindowsVolumeObjectType">
-                                <WinVolumeObj:Drive_Letter condition="Equals">C</WinVolumeObj:Drive_Letter>
-                            </cybox:Properties>
-                        </cybox:Object>
+                    <cybox:Observable id="openioc:Observable-9b401d9a-cf62-4d22-b15e-280dca54e708">
+                        <cybox:Description><![CDATA[Error|Ignore. IndicatorItem not translated. Encountered IOC term 'VolumeItem/DriveLetter' , which does not currently map to CybOX.]]></cybox:Description>
                     </cybox:Observable>
-                    <cybox:Observable id="openioc:indicator-item-2e463fa6-fe0e-403c-9fa9-894bd42f8a82">
-                        <cybox:Object>
+                    <cybox:Observable id="openioc:Observable-174be218-7493-4ac8-b4e8-f69d7728f7a1">
+                        <cybox:Object id="openioc:Disk-9ee59fc6-14b8-4ad1-b3b7-e8f482a792ce">
                             <cybox:Properties xsi:type="DiskObj:DiskObjectType">
                                 <DiskObj:Disk_Name condition="Equals">\\.\PhysicalDrive0</DiskObj:Disk_Name>
                             </cybox:Properties>
                         </cybox:Object>
                     </cybox:Observable>
-                    <cybox:Observable id="openioc:indicator-item-a7fdaf04-51dc-4c7e-a1e1-d4baf40e863d">
-                        <cybox:Object>
+                    <cybox:Observable id="openioc:Observable-28af8d15-8bcb-484e-87c1-fa74ec17ea93">
+                        <cybox:Object id="openioc:WinKernelHook-8b0a8627-2a21-4edd-a461-fbe836f10158">
                             <cybox:Properties xsi:type="WinKernelHookObj:WindowsKernelHookObjectType">
                                 <WinKernelHookObj:Hooked_Module condition="Equals">disk.sys</WinKernelHookObj:Hooked_Module>
                             </cybox:Properties>
                         </cybox:Object>
                     </cybox:Observable>
-                    <cybox:Observable id="openioc:indicator-item-f23f9121-9618-43c0-860b-d0f7122e23de">
-                        <cybox:Object>
+                    <cybox:Observable id="openioc:Observable-b9d13604-28b6-40a6-8f93-72afe95983e0">
+                        <cybox:Object id="openioc:WinDriver-2bfcee82-817c-4ec6-84ab-7253055e86b0">
                             <cybox:Properties xsi:type="WinDriverObj:WindowsDriverObjectType">
                                 <WinDriverObj:Driver_Name condition="Equals">disk.sys</WinDriverObj:Driver_Name>
                             </cybox:Properties>
                         </cybox:Object>
                     </cybox:Observable>
-                    <cybox:Observable id="openioc:indicator-990fbe29-6af6-45cb-b07e-6d13c5a30617">
+                    <cybox:Observable id="openioc:item-990fbe29-6af6-45cb-b07e-6d13c5a30617">
                         <cybox:Observable_Composition operator="AND">
-                            <cybox:Observable id="openioc:indicator-item-de7c6347-34d8-4a16-b559-38d9f4e6aabb">
-                                <cybox:Object>
+                            <cybox:Observable id="openioc:Observable-ed165a0b-8ff9-4b9c-888d-e3b237286db7">
+                                <cybox:Object id="openioc:File-8f1879e0-f53d-40a0-aab5-5b95a8a63807">
                                     <cybox:Properties xsi:type="FileObj:FileObjectType">
                                         <FileObj:File_Name condition="Equals">sens.dll</FileObj:File_Name>
                                     </cybox:Properties>
                                 </cybox:Object>
                             </cybox:Observable>
-                            <cybox:Observable id="openioc:indicator-item-96b8856c-f865-4805-93ed-aa8780b87617">
-                                <cybox:Object>
+                            <cybox:Observable id="openioc:Observable-3f76f690-f0e0-4e4b-93bf-a5ee01a2f783">
+                                <cybox:Object id="openioc:WinExecutableFile-1bc97f7e-c3ab-4490-a827-84a1757c1713">
                                     <cybox:Properties xsi:type="WinExecutableFileObj:WindowsExecutableFileObjectType">
                                         <WinExecutableFileObj:Digital_Signature signature_exists="true"/>
                                     </cybox:Properties>
@@ -178,7 +130,7 @@
                 <stixCommon:Tools>
                     <cyboxCommon:Tool>
                         <cyboxCommon:Name>OpenIOC to STIX Utility</cyboxCommon:Name>
-                        <cyboxCommon:Version>0.12</cyboxCommon:Version>
+                        <cyboxCommon:Version>1.0</cyboxCommon:Version>
                     </cyboxCommon:Tool>
                 </stixCommon:Tools>
             </indicator:Producer>

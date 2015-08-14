@@ -1,7 +1,4 @@
 <stix:STIX_Package 
-	xmlns:cyboxCommon="http://cybox.mitre.org/common-2"
-	xmlns:cybox="http://cybox.mitre.org/cybox-2"
-	xmlns:cyboxVocabs="http://cybox.mitre.org/default_vocabularies-2"
 	xmlns:FileObj="http://cybox.mitre.org/objects#FileObject-2"
 	xmlns:MemoryObj="http://cybox.mitre.org/objects#MemoryObject-2"
 	xmlns:ProcessObj="http://cybox.mitre.org/objects#ProcessObject-2"
@@ -12,49 +9,27 @@
 	xmlns:WinHandleObj="http://cybox.mitre.org/objects#WinHandleObject-2"
 	xmlns:WinProcessObj="http://cybox.mitre.org/objects#WinProcessObject-2"
 	xmlns:WinRegistryKeyObj="http://cybox.mitre.org/objects#WinRegistryKeyObject-2"
-	xmlns:example="http://example.com"
-	xmlns:openioc="http://openioc.org/"
-	xmlns:incident="http://stix.mitre.org/Incident-1"
+	xmlns:cybox="http://cybox.mitre.org/cybox-2"
+	xmlns:cyboxCommon="http://cybox.mitre.org/common-2"
+	xmlns:cyboxVocabs="http://cybox.mitre.org/default_vocabularies-2"
 	xmlns:indicator="http://stix.mitre.org/Indicator-2"
+	xmlns:openioc="http://openioc.org/openioc"
+	xmlns:stix="http://stix.mitre.org/stix-1"
 	xmlns:stixCommon="http://stix.mitre.org/common-1"
 	xmlns:stixVocabs="http://stix.mitre.org/default_vocabularies-1"
-	xmlns:stix="http://stix.mitre.org/stix-1"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="
-	http://cybox.mitre.org/common-2 http://cybox.mitre.org/XMLSchema/common/2.1/cybox_common.xsd
-	http://cybox.mitre.org/cybox-2 http://cybox.mitre.org/XMLSchema/core/2.1/cybox_core.xsd
-	http://cybox.mitre.org/default_vocabularies-2 http://cybox.mitre.org/XMLSchema/default_vocabularies/2.1/cybox_default_vocabularies.xsd
-	http://cybox.mitre.org/objects#FileObject-2 http://cybox.mitre.org/XMLSchema/objects/File/2.1/File_Object.xsd
-	http://cybox.mitre.org/objects#MemoryObject-2 http://cybox.mitre.org/XMLSchema/objects/Memory/2.1/Memory_Object.xsd
-	http://cybox.mitre.org/objects#ProcessObject-2 http://cybox.mitre.org/XMLSchema/objects/Process/2.1/Process_Object.xsd
-	http://cybox.mitre.org/objects#WinDriverObject-3 http://cybox.mitre.org/XMLSchema/objects/Win_Driver/3.0/Win_Driver_Object.xsd
-	http://cybox.mitre.org/objects#WinEventLogObject-2 http://cybox.mitre.org/XMLSchema/objects/Win_Event_Log/2.1/Win_Event_Log_Object.xsd
-	http://cybox.mitre.org/objects#WinExecutableFileObject-2 http://cybox.mitre.org/XMLSchema/objects/Win_Executable_File/2.1/Win_Executable_File_Object.xsd
-	http://cybox.mitre.org/objects#WinFileObject-2 http://cybox.mitre.org/XMLSchema/objects/Win_File/2.1/Win_File_Object.xsd
-	http://cybox.mitre.org/objects#WinHandleObject-2 http://cybox.mitre.org/XMLSchema/objects/Win_Handle/2.1/Win_Handle_Object.xsd
-	http://cybox.mitre.org/objects#WinProcessObject-2 http://cybox.mitre.org/XMLSchema/objects/Win_Process/2.1/Win_Process_Object.xsd
-	http://cybox.mitre.org/objects#WinRegistryKeyObject-2 http://cybox.mitre.org/XMLSchema/objects/Win_Registry_Key/2.1/Win_Registry_Key_Object.xsd
-	http://stix.mitre.org/Incident-1 http://stix.mitre.org/XMLSchema/incident/1.1.1/incident.xsd
-	http://stix.mitre.org/Indicator-2 http://stix.mitre.org/XMLSchema/indicator/2.1.1/indicator.xsd
-	http://stix.mitre.org/common-1 http://stix.mitre.org/XMLSchema/common/1.1.1/stix_common.xsd
-	http://stix.mitre.org/default_vocabularies-1 http://stix.mitre.org/XMLSchema/default_vocabularies/1.1.1/stix_default_vocabularies.xsd
-	http://stix.mitre.org/stix-1 http://stix.mitre.org/XMLSchema/core/1.1.1/stix_core.xsd" id="example:Package-14d88ca8-d5dc-4f5c-9d82-b354d4c12e7b" version="1.1.1" timestamp="2014-07-11T11:38:42.636952+00:00">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="openioc:Package-5936aaf1-00a2-4130-813b-c6873cd1e274" version="1.2">
     <stix:STIX_Header>
         <stix:Description>CybOX-represented Indicators Translated from OpenIOC File</stix:Description>
     </stix:STIX_Header>
     <stix:Indicators>
-        <stix:Indicator xsi:type='indicator:IndicatorType' negate="false" version="2.1.1">
+        <stix:Indicator id="openioc:indicator-a5795352-3b0b-4418-9a2b-5ca1754ff561" timestamp="2015-08-14T19:32:21.712624+00:00" xsi:type='indicator:IndicatorType'>
             <indicator:Title>CybOX-represented Indicator Created from OpenIOC File</indicator:Title>
-            <indicator:Observable id="openioc:indicator-9fd46693-ee1c-4d31-b732-35bf952651e3">
-                <cybox:Title>Indicator for the duqu trojan. The initial duqu driver will decode and inject a dll (marked as .pnf) into a system process (usually services.exe).  The injected dll contains another dll encoded within it's resource section which it will inject into other processes as identified within its encoded configuruation file (another .pnf file).  This second injected dll is responsible for all backdoor/C2 communication.</cybox:Title>
-                <cybox:Observable_Source>
-                    <cyboxCommon:Description>OpenIOC File: duqu.ioc.xml</cyboxCommon:Description>
-                </cybox:Observable_Source>
+            <indicator:Observable id="openioc:item-9fd46693-ee1c-4d31-b732-35bf952651e3">
                 <cybox:Observable_Composition operator="OR">
-                    <cybox:Observable id="openioc:indicator-e4deb0af-7558-498e-b953-6e70ec694767">
+                    <cybox:Observable id="openioc:item-e4deb0af-7558-498e-b953-6e70ec694767">
                         <cybox:Observable_Composition operator="AND">
-                            <cybox:Observable id="openioc:indicator-item-d5b29cfe-8599-498a-b805-326273fe10c5">
-                                <cybox:Object>
+                            <cybox:Observable id="openioc:Observable-b01aa1d5-f5e2-4521-979b-cad99723e3a9">
+                                <cybox:Object id="openioc:WinExecutableFile-bfbcaa9e-df9e-4047-9f11-0789bf95a297">
                                     <cybox:Properties xsi:type="WinExecutableFileObj:WindowsExecutableFileObjectType">
                                         <WinExecutableFileObj:Digital_Signature>
                                             <cyboxCommon:Certificate_Subject condition="Contains">C-Media Electronics Incorporation</cyboxCommon:Certificate_Subject>
@@ -62,8 +37,8 @@
                                     </cybox:Properties>
                                 </cybox:Object>
                             </cybox:Observable>
-                            <cybox:Observable id="openioc:indicator-item-1ca2947c-0b26-409c-93d2-28f6b364bc0b">
-                                <cybox:Object>
+                            <cybox:Observable id="openioc:Observable-efd2453c-1b03-43a2-91ae-d9ba0bac1c23">
+                                <cybox:Object id="openioc:File-bde913a1-f308-4e3a-a902-35269ce771ae">
                                     <cybox:Properties xsi:type="FileObj:FileObjectType">
                                         <FileObj:File_Name condition="Contains">cmi4432.sys</FileObj:File_Name>
                                     </cybox:Properties>
@@ -71,10 +46,10 @@
                             </cybox:Observable>
                         </cybox:Observable_Composition>
                     </cybox:Observable>
-                    <cybox:Observable id="openioc:indicator-025d5bf1-e062-4300-a24a-e2d1c9877f1c">
+                    <cybox:Observable id="openioc:item-025d5bf1-e062-4300-a24a-e2d1c9877f1c">
                         <cybox:Observable_Composition operator="AND">
-                            <cybox:Observable id="openioc:indicator-item-8a9e777b-ebbb-4494-ab05-acf39a3f6e48">
-                                <cybox:Object>
+                            <cybox:Observable id="openioc:Observable-eab949b5-e506-456b-9d86-eb1db2528df1">
+                                <cybox:Object id="openioc:WinDriver-f8b640de-65d2-41c8-89b1-7f328b5df94c">
                                     <cybox:Properties xsi:type="WinDriverObj:WindowsDriverObjectType">
                                         <WinDriverObj:Device_Object_List>
                                             <WinDriverObj:Device_Object_Struct>
@@ -84,10 +59,10 @@
                                     </cybox:Properties>
                                 </cybox:Object>
                             </cybox:Observable>
-                            <cybox:Observable id="openioc:indicator-3cfe6f4c-3276-4e8b-88d5-9b53665da358">
+                            <cybox:Observable id="openioc:item-3cfe6f4c-3276-4e8b-88d5-9b53665da358">
                                 <cybox:Observable_Composition operator="OR">
-                                    <cybox:Observable id="openioc:indicator-item-0a704ede-840d-4075-a508-3ee5744c332f">
-                                        <cybox:Object>
+                                    <cybox:Observable id="openioc:Observable-1eb89f73-5ba5-4c25-9e55-f001eb9b6f62">
+                                        <cybox:Object id="openioc:WinDriver-1c1c2ff2-e298-42fb-904f-d1873800f645">
                                             <cybox:Properties xsi:type="WinDriverObj:WindowsDriverObjectType">
                                                 <WinDriverObj:Device_Object_List>
                                                     <WinDriverObj:Device_Object_Struct>
@@ -97,8 +72,8 @@
                                             </cybox:Properties>
                                         </cybox:Object>
                                     </cybox:Observable>
-                                    <cybox:Observable id="openioc:indicator-item-09900e0b-8219-43dc-930b-fabf5324da4e">
-                                        <cybox:Object>
+                                    <cybox:Observable id="openioc:Observable-eb6bbb1d-7668-45ad-bee7-07f828eb8cad">
+                                        <cybox:Object id="openioc:WinDriver-521d999c-a14f-4b4f-90ac-f6e3ca6cb43d">
                                             <cybox:Properties xsi:type="WinDriverObj:WindowsDriverObjectType">
                                                 <WinDriverObj:Device_Object_List>
                                                     <WinDriverObj:Device_Object_Struct>
@@ -112,20 +87,20 @@
                             </cybox:Observable>
                         </cybox:Observable_Composition>
                     </cybox:Observable>
-                    <cybox:Observable id="openioc:indicator-d0f65908-5a1a-4936-98e0-cf98ba51037e">
+                    <cybox:Observable id="openioc:item-d0f65908-5a1a-4936-98e0-cf98ba51037e">
                         <cybox:Observable_Composition operator="AND">
-                            <cybox:Observable id="openioc:indicator-item-b38d3a14-3839-4c62-ae38-3ff48b720add">
-                                <cybox:Object>
+                            <cybox:Observable id="openioc:Observable-dba9e231-1410-4b86-96b8-0e6422752cbe">
+                                <cybox:Object id="openioc:WinRegistryKey-0d63962a-d4d3-4b01-bae7-6b411e8f7e69">
                                     <cybox:Properties xsi:type="WinRegistryKeyObj:WindowsRegistryKeyObjectType">
                                         <WinRegistryKeyObj:Key condition="Contains">SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Zones\4</WinRegistryKeyObj:Key>
                                         <WinRegistryKeyObj:Hive condition="Equals">HKEY_LOCAL_MACHINE</WinRegistryKeyObj:Hive>
                                     </cybox:Properties>
                                 </cybox:Object>
                             </cybox:Observable>
-                            <cybox:Observable id="openioc:indicator-e415d391-871f-44b9-8fd3-70967644d36f">
+                            <cybox:Observable id="openioc:item-e415d391-871f-44b9-8fd3-70967644d36f">
                                 <cybox:Observable_Composition operator="OR">
-                                    <cybox:Observable id="openioc:indicator-item-bcf49307-8362-4f05-998c-a8dd629dbb7d">
-                                        <cybox:Object>
+                                    <cybox:Observable id="openioc:Observable-85b62e07-7303-499d-b9cf-b13cd731488e">
+                                        <cybox:Object id="openioc:WinRegistryKey-14055769-7a38-4545-acce-e7ec38512ae2">
                                             <cybox:Properties xsi:type="WinRegistryKeyObj:WindowsRegistryKeyObjectType">
                                                 <WinRegistryKeyObj:Values>
                                                     <WinRegistryKeyObj:Value>
@@ -135,8 +110,8 @@
                                             </cybox:Properties>
                                         </cybox:Object>
                                     </cybox:Observable>
-                                    <cybox:Observable id="openioc:indicator-item-c13f696c-53ef-4102-b462-4fb9623f2ac5">
-                                        <cybox:Object>
+                                    <cybox:Observable id="openioc:Observable-2543c63a-7778-4ecd-94de-6f3dc98c19be">
+                                        <cybox:Object id="openioc:WinRegistryKey-04d1688a-de47-402c-89fb-2fd03c6a5c36">
                                             <cybox:Properties xsi:type="WinRegistryKeyObj:WindowsRegistryKeyObjectType">
                                                 <WinRegistryKeyObj:Values>
                                                     <WinRegistryKeyObj:Value>
@@ -150,24 +125,24 @@
                             </cybox:Observable>
                         </cybox:Observable_Composition>
                     </cybox:Observable>
-                    <cybox:Observable id="openioc:indicator-e59031e1-1a15-42be-8cae-198e69c88ced">
+                    <cybox:Observable id="openioc:item-e59031e1-1a15-42be-8cae-198e69c88ced">
                         <cybox:Observable_Composition operator="AND">
-                            <cybox:Observable id="openioc:indicator-item-0f00f74d-c2ff-4c24-9334-bcfa8430a00b">
-                                <cybox:Object>
+                            <cybox:Observable id="openioc:Observable-788a0feb-27aa-4e2a-b08b-fdd9f3f26130">
+                                <cybox:Object id="openioc:WinEventLog-639cf4d6-9026-4470-94e1-a3785bcc0fa8">
                                     <cybox:Properties xsi:type="WinEventLogObj:WindowsEventLogObjectType">
                                         <WinEventLogObj:Type condition="Equals">Error</WinEventLogObj:Type>
                                     </cybox:Properties>
                                 </cybox:Object>
                             </cybox:Observable>
-                            <cybox:Observable id="openioc:indicator-item-a3ae813d-27b1-49d5-8057-04d0702eb3ee">
-                                <cybox:Object>
+                            <cybox:Observable id="openioc:Observable-bbee8fa9-7301-42b7-8f76-0250c1ed5b87">
+                                <cybox:Object id="openioc:WinEventLog-711ef5f0-a3ce-4f2e-a95b-48b76bfc7b21">
                                     <cybox:Properties xsi:type="WinEventLogObj:WindowsEventLogObjectType">
                                         <WinEventLogObj:Source condition="Equals">DCOM</WinEventLogObj:Source>
                                     </cybox:Properties>
                                 </cybox:Object>
                             </cybox:Observable>
-                            <cybox:Observable id="openioc:indicator-item-a10fc902-a5fa-4f1a-87a7-ad7855066be1">
-                                <cybox:Object>
+                            <cybox:Observable id="openioc:Observable-78e4d732-576b-48f5-bc5d-44e171605c66">
+                                <cybox:Object id="openioc:WinEventLog-0884fab1-0708-4738-9d78-6cc92ffbf087">
                                     <cybox:Properties xsi:type="WinEventLogObj:WindowsEventLogObjectType">
                                         <WinEventLogObj:EID condition="Equals">3221235481</WinEventLogObj:EID>
                                     </cybox:Properties>
@@ -175,17 +150,17 @@
                             </cybox:Observable>
                         </cybox:Observable_Composition>
                     </cybox:Observable>
-                    <cybox:Observable id="openioc:indicator-48479d30-7791-486c-8bb9-2f82bb333ee3">
+                    <cybox:Observable id="openioc:item-48479d30-7791-486c-8bb9-2f82bb333ee3">
                         <cybox:Observable_Composition operator="AND">
-                            <cybox:Observable id="openioc:indicator-item-62dba9e1-0e60-49a9-9e09-1b6c9d393d83">
-                                <cybox:Object>
+                            <cybox:Observable id="openioc:Observable-c3ed1a80-ce81-4069-a199-9335cc8d54ea">
+                                <cybox:Object id="openioc:Process-46c92053-d3da-4999-a452-e72210b40781">
                                     <cybox:Properties xsi:type="ProcessObj:ProcessObjectType">
                                         <ProcessObj:Name condition="Equals">services.exe</ProcessObj:Name>
                                     </cybox:Properties>
                                 </cybox:Object>
                             </cybox:Observable>
-                            <cybox:Observable id="openioc:indicator-item-22c5d023-55b4-4857-9bf0-a5d56395a2eb">
-                                <cybox:Object>
+                            <cybox:Observable id="openioc:Observable-6fa91116-522a-4c51-af21-f7b38f0ebc04">
+                                <cybox:Object id="openioc:WinProcess-80123b64-26a2-4a6f-8269-519334cc3b5c">
                                     <cybox:Properties xsi:type="WinProcessObj:WindowsProcessObjectType">
                                         <WinProcessObj:Section_List>
                                             <WinProcessObj:Memory_Section xsi:type="MemoryObj:MemoryObjectType" is_injected="true">
@@ -194,8 +169,8 @@
                                     </cybox:Properties>
                                 </cybox:Object>
                             </cybox:Observable>
-                            <cybox:Observable id="openioc:indicator-item-ccb95100-7cb4-445f-833e-12c2ff460617">
-                                <cybox:Object>
+                            <cybox:Observable id="openioc:Observable-f63536b3-b820-4002-b3e9-4c4099451907">
+                                <cybox:Object id="openioc:WinProcess-4f8b74bf-8ffe-4cff-bb04-8763871917f7">
                                     <cybox:Properties xsi:type="WinProcessObj:WindowsProcessObjectType">
                                         <WinProcessObj:Handle_List>
                                             <WinHandleObj:Handle xsi:type="WinHandleObj:WindowsHandleObjectType">
@@ -205,8 +180,8 @@
                                     </cybox:Properties>
                                 </cybox:Object>
                             </cybox:Observable>
-                            <cybox:Observable id="openioc:indicator-item-eaa86c31-fcf5-4565-be04-b6a0cea1c3ab">
-                                <cybox:Object>
+                            <cybox:Observable id="openioc:Observable-a5d769a8-83ab-4167-8527-895d9ed2229d">
+                                <cybox:Object id="openioc:WinProcess-a69fcdfb-7f40-4319-9c13-b4812a5718d6">
                                     <cybox:Properties xsi:type="WinProcessObj:WindowsProcessObjectType">
                                         <WinProcessObj:Handle_List>
                                             <WinHandleObj:Handle xsi:type="WinHandleObj:WindowsHandleObjectType">
@@ -216,8 +191,8 @@
                                     </cybox:Properties>
                                 </cybox:Object>
                             </cybox:Observable>
-                            <cybox:Observable id="openioc:indicator-item-9adc21a9-26a9-4614-abb0-24e510e17c54">
-                                <cybox:Object>
+                            <cybox:Observable id="openioc:Observable-2bc95119-0ea3-4a49-998b-bb612e06e2bd">
+                                <cybox:Object id="openioc:WinProcess-3c5c5e85-12b6-40b8-9844-2fd191e84318">
                                     <cybox:Properties xsi:type="WinProcessObj:WindowsProcessObjectType">
                                         <WinProcessObj:Handle_List>
                                             <WinHandleObj:Handle xsi:type="WinHandleObj:WindowsHandleObjectType">
@@ -229,17 +204,17 @@
                             </cybox:Observable>
                         </cybox:Observable_Composition>
                     </cybox:Observable>
-                    <cybox:Observable id="openioc:indicator-bc47e9cf-0463-47ad-bcf4-f7ab394936ae">
+                    <cybox:Observable id="openioc:item-bc47e9cf-0463-47ad-bcf4-f7ab394936ae">
                         <cybox:Observable_Composition operator="AND">
-                            <cybox:Observable id="openioc:indicator-item-43fb1d62-cc30-493b-9229-216c4ec1e362">
-                                <cybox:Object>
+                            <cybox:Observable id="openioc:Observable-d7ae3dfa-b301-490c-b256-7ff86393efb2">
+                                <cybox:Object id="openioc:Process-77fa4b96-7d84-42ad-b4e6-83d3f670d46e">
                                     <cybox:Properties xsi:type="ProcessObj:ProcessObjectType">
                                         <ProcessObj:Name condition="Equals">lsass.exe</ProcessObj:Name>
                                     </cybox:Properties>
                                 </cybox:Object>
                             </cybox:Observable>
-                            <cybox:Observable id="openioc:indicator-item-de03fbaa-253f-429f-85b8-cbd58cab2d6f">
-                                <cybox:Object>
+                            <cybox:Observable id="openioc:Observable-31ad4159-2b22-4a92-b37f-0f04613b9d7a">
+                                <cybox:Object id="openioc:WinProcess-dab6ce29-0289-4069-b8b0-089ce6ffcfc0">
                                     <cybox:Properties xsi:type="WinProcessObj:WindowsProcessObjectType">
                                         <WinProcessObj:Section_List>
                                             <WinProcessObj:Memory_Section xsi:type="MemoryObj:MemoryObjectType">
@@ -249,8 +224,8 @@
                                     </cybox:Properties>
                                 </cybox:Object>
                             </cybox:Observable>
-                            <cybox:Observable id="openioc:indicator-item-88b75212-b0de-487a-958a-6c13b49a9714">
-                                <cybox:Object>
+                            <cybox:Observable id="openioc:Observable-b06a174f-52e0-4c15-8ea6-1a21787aa03c">
+                                <cybox:Object id="openioc:WinProcess-41c2597c-4cfd-4ef7-9b77-775b18e944b3">
                                     <cybox:Properties xsi:type="WinProcessObj:WindowsProcessObjectType">
                                         <WinProcessObj:Section_List>
                                             <WinProcessObj:Memory_Section xsi:type="MemoryObj:MemoryObjectType" is_injected="true">
@@ -261,17 +236,17 @@
                             </cybox:Observable>
                         </cybox:Observable_Composition>
                     </cybox:Observable>
-                    <cybox:Observable id="openioc:indicator-1bd40f96-b1bc-43ef-b482-5d2e81fa6da7">
+                    <cybox:Observable id="openioc:item-1bd40f96-b1bc-43ef-b482-5d2e81fa6da7">
                         <cybox:Observable_Composition operator="AND">
-                            <cybox:Observable id="openioc:indicator-item-2e0bd752-975b-4155-94ad-2ab760a9a53a">
-                                <cybox:Object>
+                            <cybox:Observable id="openioc:Observable-e78728be-cf6d-4b5e-9158-663bbb2918e7">
+                                <cybox:Object id="openioc:Process-a73f488e-2235-45b6-acde-6b6a75f92210">
                                     <cybox:Properties xsi:type="ProcessObj:ProcessObjectType">
                                         <ProcessObj:Name condition="Equals">winlogon.exe</ProcessObj:Name>
                                     </cybox:Properties>
                                 </cybox:Object>
                             </cybox:Observable>
-                            <cybox:Observable id="openioc:indicator-item-174d0bcd-4325-44f6-805d-87dce4c51b47">
-                                <cybox:Object>
+                            <cybox:Observable id="openioc:Observable-647008fc-9510-4291-a833-cfcb2e700022">
+                                <cybox:Object id="openioc:WinProcess-0fc5f65e-f7c3-48f0-94a6-652a78279174">
                                     <cybox:Properties xsi:type="WinProcessObj:WindowsProcessObjectType">
                                         <WinProcessObj:Section_List>
                                             <WinProcessObj:Memory_Section xsi:type="MemoryObj:MemoryObjectType">
@@ -281,8 +256,8 @@
                                     </cybox:Properties>
                                 </cybox:Object>
                             </cybox:Observable>
-                            <cybox:Observable id="openioc:indicator-item-5215ed3f-7795-4689-801b-13373da473f6">
-                                <cybox:Object>
+                            <cybox:Observable id="openioc:Observable-0a45eb91-b537-4d94-b8cf-66119cbb6712">
+                                <cybox:Object id="openioc:WinProcess-8d1b45ad-0394-45f2-a87c-79b3a269ee5a">
                                     <cybox:Properties xsi:type="WinProcessObj:WindowsProcessObjectType">
                                         <WinProcessObj:Section_List>
                                             <WinProcessObj:Memory_Section xsi:type="MemoryObj:MemoryObjectType" is_injected="true">
@@ -293,17 +268,17 @@
                             </cybox:Observable>
                         </cybox:Observable_Composition>
                     </cybox:Observable>
-                    <cybox:Observable id="openioc:indicator-37897b71-89cf-46dc-8e77-a4f731cb1d92">
+                    <cybox:Observable id="openioc:item-37897b71-89cf-46dc-8e77-a4f731cb1d92">
                         <cybox:Observable_Composition operator="AND">
-                            <cybox:Observable id="openioc:indicator-item-80a37c9e-ab5d-461d-ba3f-9a5ccbf65779">
-                                <cybox:Object>
+                            <cybox:Observable id="openioc:Observable-7b1fd02f-5b20-45d1-b99f-cc15b86e06ef">
+                                <cybox:Object id="openioc:Process-a209bb85-b7bb-4a65-a7a4-ea33128a4301">
                                     <cybox:Properties xsi:type="ProcessObj:ProcessObjectType">
                                         <ProcessObj:Name condition="Contains">svchost.exe</ProcessObj:Name>
                                     </cybox:Properties>
                                 </cybox:Object>
                             </cybox:Observable>
-                            <cybox:Observable id="openioc:indicator-item-5fcc9fc2-a470-4cce-97c9-6d96dc94a57f">
-                                <cybox:Object>
+                            <cybox:Observable id="openioc:Observable-69234794-eef5-499a-91b5-75af74d88757">
+                                <cybox:Object id="openioc:WinProcess-f5515386-9ba1-4f6d-b7ed-857e5b6ae757">
                                     <cybox:Properties xsi:type="WinProcessObj:WindowsProcessObjectType">
                                         <WinProcessObj:Section_List>
                                             <WinProcessObj:Memory_Section xsi:type="MemoryObj:MemoryObjectType">
@@ -313,8 +288,8 @@
                                     </cybox:Properties>
                                 </cybox:Object>
                             </cybox:Observable>
-                            <cybox:Observable id="openioc:indicator-item-dc046b4b-a0a8-47e5-92c9-e3e8c73679d6">
-                                <cybox:Object>
+                            <cybox:Observable id="openioc:Observable-a45f81ff-15b9-492d-b0cb-8d65a27ea276">
+                                <cybox:Object id="openioc:WinProcess-1d6d4ceb-23c6-4bfb-ae99-eb881eeed1e4">
                                     <cybox:Properties xsi:type="WinProcessObj:WindowsProcessObjectType">
                                         <WinProcessObj:Section_List>
                                             <WinProcessObj:Memory_Section xsi:type="MemoryObj:MemoryObjectType" is_injected="true">
@@ -331,7 +306,7 @@
                 <stixCommon:Tools>
                     <cyboxCommon:Tool>
                         <cyboxCommon:Name>OpenIOC to STIX Utility</cyboxCommon:Name>
-                        <cyboxCommon:Version>0.12</cyboxCommon:Version>
+                        <cyboxCommon:Version>1.0</cyboxCommon:Version>
                     </cyboxCommon:Tool>
                 </stixCommon:Tools>
             </indicator:Producer>
