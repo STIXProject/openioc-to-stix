@@ -547,13 +547,15 @@ def create_prefetch_obj(search_string, content_string, condition):
     }
 
     prefetch = WinPrefetch()
-    volume = WinVolume()
+    # volume = WinVolume()
 
     if search_string in prefected_attrmap:
         set_field(prefetch, prefected_attrmap[search_string], content_string, condition)
     elif search_string in volume_attrmap:
-        set_field(volume, volume_attrmap[search_string], content_string, condition)
-        prefetch.volume = volume
+        LOG.info("Cannot translate WinVolume object. See "
+                 "https://github.com/CybOXProject/python-cybox/issues/269")
+        # set_field(volume, volume_attrmap[search_string], content_string, condition)
+        # prefetch.volume = volume
     elif search_string == "PrefetchItem/AccessedFileList/AccessedFile":
         s = String(xml.sanitize(content_string))
         s.condition = condition
