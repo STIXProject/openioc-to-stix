@@ -1,14 +1,15 @@
 # Copyright (c) 2015, The MITRE Corporation. All rights reserved.
 # See LICENSE.txt for complete terms.
 
+import unittest
+
 import cybox
 from cybox.core import Observable, ObservableComposition, Event
 from cybox.common import ObjectProperties
 from cybox.common.properties import _LongBase, _IntegerBase, _FloatBase, String
 
-import unittest
-
 from openioc2stix import utils
+
 
 class MockObject(ObjectProperties):
     # Class used for testing cybox.TypesField attributes
@@ -28,9 +29,6 @@ class WrongMockObject:
         return self.dne
 
 class UtilsTest(unittest.TestCase):
-
-    def setUp(self):
-        pass
 
     def test_normalize_id(self):
         # Check to see if ':' are replaced with '-' by the function `normalize_id`

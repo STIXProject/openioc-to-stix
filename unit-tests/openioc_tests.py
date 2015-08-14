@@ -73,6 +73,7 @@ OPENIOC_XML = """<?xml version="1.0" encoding="us-ascii"?>
 
 class OpeniocTest(unittest.TestCase):
 
+    @classmethod
     def setUpClass(cls):
         # Parse the xml string and define the root
         ioc_xml = StringIO(OPENIOC_XML)

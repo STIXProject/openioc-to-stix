@@ -32,15 +32,16 @@ OPENIOC_XML = """<?xml version="1.0" encoding="us-ascii"?>
 
 
 class XMLTest(unittest.TestCase):
+    @classmethod
     def setUpClass(cls):
         cls.xml_parser = xml.get_xml_parser()
 
+    @classmethod
     def tearDownClass(cls):
         xml.set_xml_parser(cls.xml_parser)
 
     def setUp(self):
         xml.set_xml_parser(self.xml_parser)
-        pass
 
     def test_get_xml_parser(self):
         # Check to see if the correct lxml.etree.ETCompactXMLParser object is returned by the function `get_xml_parser`
