@@ -1,16 +1,16 @@
 # Copyright (c) 2015, The MITRE Corporation. All rights reserved.
 # See LICENSE.txt for complete terms.
 
-import unittest
-
-from openioc2stix import utils
-
 import cybox
 from cybox.core import Observable, ObservableComposition, Event
 from cybox.common import ObjectProperties
 from cybox.common.properties import _LongBase, _IntegerBase, _FloatBase, String
 
-class test_class(ObjectProperties):
+import unittest
+
+from openioc2stix import utils
+
+class MockObject(ObjectProperties):
     # Class used for testing cybox.TypesField attributes
     Long  = cybox.TypedField('Long', _LongBase)
     Int   = cybox.TypedField('Int', _IntegerBase)
@@ -18,7 +18,7 @@ class test_class(ObjectProperties):
     Str   = cybox.TypedField('Str', String)
     Non   = cybox.TypedField('None', None)
 
-class wrong_test_class():
+class WrongMockObject:
     # Class used for testing wrong attribute types
     def __init__(self, dne):
         self.dne = dne
@@ -65,7 +65,7 @@ class UtilsTest(unittest.TestCase):
         # Check to see if the correct numerical cybox.TypedField is returned by `is_numeric`
 
         # Only true if a numeric TypedField is being checked
-        test_object = test_class()
+        test_object = MockObject()
         self.assertTrue(utils.is_numeric(test_object, 'Long'))
         self.assertTrue(utils.is_numeric(test_object, 'Int'))
         self.assertTrue(utils.is_numeric(test_object, 'Float'))
@@ -75,7 +75,7 @@ class UtilsTest(unittest.TestCase):
         self.assertFalse(utils.is_numeric(test_object, 'Non'))
 
         # Not a TypedField object
-        test_object = wrong_test_class(5)
+        test_object = WrongMockObject(5)
         self.assertFalse(utils.is_numeric(test_object, 'dne'))
 
     def test_is_empty_observable(self):
@@ -90,7 +90,7 @@ class UtilsTest(unittest.TestCase):
         self.assertTrue(utils.is_empty_observable(test))
 
         # Non empty Observable with Object
-        test = Observable(test_class())
+        test = Observable(MockObject())
         self.assertFalse(utils.is_empty_observable(test))
 
         # Non empty Observable with Event

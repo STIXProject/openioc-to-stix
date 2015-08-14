@@ -2,10 +2,11 @@
 # See LICENSE.txt for complete terms.
 
 import unittest
-import lxml.etree as ET
 
 from openioc2stix import xml
 from StringIO import StringIO
+
+import lxml.etree as ET
 
 OPENIOC_XML = """<?xml version="1.0" encoding="us-ascii"?>
 <ioc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" id="fc2d3e44-80a6-4add-ad94-de9f289e62ff" last-modified="2011-10-28T21:00:13" xmlns="http://schemas.mandiant.com/2010/ioc">
@@ -78,10 +79,7 @@ class XMLTest(unittest.TestCase):
         # when they are detected in a string
         for char in self.XML_RESERVED_CHARS:
             wrapped = xml.sanitize(char)
-            if "<![CDATA[" in wrapped:
-                self.assertTrue(True)
-            else:
-                self.assertFalse(True)
+            self.assertTrue("<![CDATA[" in wrapped)
 
 
 if __name__ == "__main__":
