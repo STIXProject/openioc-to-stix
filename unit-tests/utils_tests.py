@@ -11,7 +11,7 @@ from cybox.common import ObjectProperties
 from cybox.common.properties import _LongBase, _IntegerBase, _FloatBase, String
 
 class test_class(ObjectProperties):
-
+    # Class used for testing cybox.TypesField attributes
     Long  = cybox.TypedField('Long', _LongBase)
     Int   = cybox.TypedField('Int', _IntegerBase)
     Float = cybox.TypedField('Float', _FloatBase)
@@ -19,7 +19,7 @@ class test_class(ObjectProperties):
     Non   = cybox.TypedField('None', None)
 
 class wrong_test_class():
-
+    # Class used for testing wrong attribute types
     def __init__(self, dne):
         self.dne = dne
 
@@ -33,7 +33,7 @@ class UtilsTest(unittest.TestCase):
         pass
 
     def test_normalize_id(self):
-        # See if colons are replaced with dashes
+        # Check to see if ':' are replaced with '-' by the function `normalize_id`
         test = "Replace:colons:in:str:with:dash"
         test = utils.normalize_id(test)
         self.assertFalse(':' in test and '-' not in test)
@@ -48,6 +48,7 @@ class UtilsTest(unittest.TestCase):
         self.assertEqual(type(utils.forcestring(num)), str)
 
     def test_partial_match(self):
+        # Check to see if correct matches are returned by `partial_match`
         key = "key1"
         partial_key = "Should be key2"
         no_key = "no key here"
@@ -61,6 +62,8 @@ class UtilsTest(unittest.TestCase):
         self.assertIsNone(utils.partial_match(test_dict, no_key))
 
     def test_is_numeric(self):
+        # Check to see if the correct numerical cybox.TypedField is returned by `is_numeric`
+
         # Only true if a numeric TypedField is being checked
         test_object = test_class()
         self.assertTrue(utils.is_numeric(test_object, 'Long'))
@@ -76,6 +79,8 @@ class UtilsTest(unittest.TestCase):
         self.assertFalse(utils.is_numeric(test_object, 'dne'))
 
     def test_is_empty_observable(self):
+        # Check to see if the cybox.core.Observable object is empty by calling `is_empty_observable`
+
         # Empty Observable
         test = Observable()
         self.assertTrue(utils.is_empty_observable(test))
