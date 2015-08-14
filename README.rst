@@ -11,7 +11,7 @@ The OpenIOC to STIX script generates STIX Indicators from an OpenIOC v1.0
 XML file.
 
 * Compatible with OpenIOC v1.0
-* Compatible with STIX v1.2 and CybOX v2.1.1
+* Generates STIX v1.2 and CybOX v2.1.1 content.
 
 Please refer to the following websites for more information about the STIX,
 CybOX, and OpenIOC efforts.
