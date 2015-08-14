@@ -2,11 +2,12 @@
 # See LICENSE.txt for complete terms.
 
 import unittest
-
-from openioc2stix import xml
 from StringIO import StringIO
 
 import lxml.etree as ET
+
+from openioc2stix import xml
+
 
 OPENIOC_XML = """<?xml version="1.0" encoding="us-ascii"?>
 <ioc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" id="fc2d3e44-80a6-4add-ad94-de9f289e62ff" last-modified="2011-10-28T21:00:13" xmlns="http://schemas.mandiant.com/2010/ioc">
@@ -31,10 +32,14 @@ OPENIOC_XML = """<?xml version="1.0" encoding="us-ascii"?>
 
 
 class XMLTest(unittest.TestCase):
-    
+    def setUpClass(cls):
+        cls.xml_parser = xml.get_xml_parser()
+
+    def tearDownClass(cls):
+        xml.set_xml_parser(cls.xml_parser)
+
     def setUp(self):
-        self.XML_RESERVED_CHARS = ('<', '>', "'", '"', '&')
-        self._XML_PARSER = None
+        xml.set_xml_parser(self.xml_parser)
         pass
 
     def test_get_xml_parser(self):
@@ -43,24 +48,9 @@ class XMLTest(unittest.TestCase):
 
     def test_set_xml_parser(self):
         # Check to see if a new parser can be set by the function `set_xml_parser`
-        self._XML_PARSER = ET.ETCompatXMLParser(
-            attribute_defaults=False,
-            load_dtd=False,
-            huge_tree=False,
-            no_network=True,
-            ns_clean=True,
-            recover=False,
-            remove_pis=False,
-            remove_blank_text=False,
-            remove_comments=False,
-            resolve_entities=False,
-            strip_cdata=True,
-            encoding=None
-        )
-        xml.set_xml_parser(self._XML_PARSER)
-
-        # If parser is still 'None' then the parser was not set.
-        self.assertIsNotNone(self._XML_PARSER)
+        parser = ET.ETCompatXMLParser()
+        xml.set_xml_parser(parser)
+        self.assertTrue(parser is xml.get_xml_parser())
 
     def test_parse(self):
         # Check to see if `parse` correctly returns lxml.etree._Element object
@@ -77,7 +67,8 @@ class XMLTest(unittest.TestCase):
     def test_sanitize(self):
         # Check to see if `sanitize` correctly wraps XML_RESERVED_CHARS, for security,
         # when they are detected in a string
-        for char in self.XML_RESERVED_CHARS:
+        xml_reserved_chars = ('<', '>', "'", '"', '&')
+        for char in xml_reserved_chars:
             wrapped = xml.sanitize(char)
             self.assertTrue("<![CDATA[" in wrapped)
 

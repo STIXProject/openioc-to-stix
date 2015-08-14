@@ -73,18 +73,16 @@ OPENIOC_XML = """<?xml version="1.0" encoding="us-ascii"?>
 
 class OpeniocTest(unittest.TestCase):
 
-    def setUp(self):
+    def setUpClass(cls):
         # Parse the xml string and define the root
         ioc_xml = StringIO(OPENIOC_XML)
         tree = ET.parse(ioc_xml)
-        self.root = tree.getroot()
+        cls.root = tree.getroot()
 
         # Use this search to get top indicators to call functions on
         xpath = "./openioc:definition/openioc:Indicator"
         namespace = {"openioc": "http://schemas.mandiant.com/2010/ioc"}
-        self.indicators = list(self.root.xpath(xpath, namespaces=namespace))
-
-        pass
+        cls.indicators = list(cls.root.xpath(xpath, namespaces=namespace))
 
     def test_get_top_indicators(self):
         # Check to see if indicators were successfully obtained through the xpath query in `get_top_indicators` function
