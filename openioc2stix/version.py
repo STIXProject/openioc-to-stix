@@ -2,4 +2,4 @@
 # For license information, see the LICENSE.txt file
 # Version information file.
 
-__version__ = "2.0"
+__version__ = "1.0"
