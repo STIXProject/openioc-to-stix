@@ -1039,15 +1039,19 @@ def create_win_task_obj(search_string, content_string, condition):
 
 
 def create_win_volume_obj(search_string, content_string, condition):
-    from cybox.objects.win_volume_object import WinVolume
+    LOG.info("Cannot translate WinVolume object. See "
+             "https://github.com/CybOXProject/python-cybox/issues/269")
 
-    if search_string != "VolumeItem/DriveLetter":
-        return None
-
-    volume = WinVolume()
-    set_field(volume, "drive_letter", content_string, condition)
-
-    return Object(volume)
+    return None
+    # from cybox.objects.win_volume_object import WinVolume
+    #
+    # if search_string != "VolumeItem/DriveLetter":
+    #     return None
+    #
+    # volume = WinVolume()
+    # set_field(volume, "drive_letter", content_string, condition)
+    #
+    # return Object(volume)
 
 
 def create_unix_file_obj(search_string, content_string, condition):
