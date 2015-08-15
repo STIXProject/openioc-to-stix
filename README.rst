@@ -34,7 +34,7 @@ Install dependencies with pip:
     $ pip install -r requirements.txt
 
 You can also install **openioc-to-stix** into your ``site-packages`` and ``PATH``
-by running the `setup.py` file (this will also install dependencies:
+by running the `setup.py` file (this will also install dependencies):
 
 ::
 
