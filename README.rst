@@ -69,13 +69,11 @@ output STIX document.
 Package Contents
 ----------------
 
-* ``README``: this file.
-* ``openioc_to_stix.py``: OpenIOC XML to STIX XML Python script.
-* ``openioc_to_cybox.py``: OpenIOC XML to CybOX XML Python converter script
+* ``README``: This file.
+* ``openioc-to-stix.py``: OpenIOC XML to STIX XML Python script.
+* ``openioc-to-cybox.py``: OpenIOC XML to CybOX XML Python converter script
   which this script wraps.
-* ``ioc_observable.py``: Helper methods for the script.
-* ``openioc.py``: OpenIOC Python bindings created for the OpenIOC to CybOX
-  script which the script imports.
+* ``openioc2stix/``: Top-level API package.
 * ``LICENSE.txt``: Terms of use for this script.
 * ``examples/*.xml``: Sample input and output XML files.
 
