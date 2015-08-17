@@ -4,4 +4,4 @@ The *.ioc.xml files were obtained from the example files on http://www.openioc.o
 
 Each *.ioc.xml file was converted using the openioc_to_stix.py and output to *.stix.xml.
 
-For example: python openioc_to_stix.py -i ./examples/zeus.ioc.xml -o ./examples/zeus.stix.xml
+For example: python openioc-to-stix.py -i ./examples/zeus.ioc.xml -o ./examples/zeus.stix.xml
