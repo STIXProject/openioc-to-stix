@@ -93,7 +93,7 @@ def create_disk_obj(search_string, content_string, condition):
 
     part_attrmap = {
         "DiskItem/PartitionList/Partition/PartitionLength": "partition_length",
-        "DiskItem/PartitionList/Partition/PartitionNumber": "partition_number",
+        "DiskItem/PartitionList/Partition/PartitionNumber": "partition_id",
         "DiskItem/PartitionList/Partition/PartitionOffset": "partition_offset",
         "DiskItem/PartitionList/Partition/PartitionType": "partition_type"
     }
@@ -119,8 +119,8 @@ def create_dns_obj(search_string, content_string, condition):
         "DnsEntryItem/DataLength": "data_length",
         "DnsEntryItem/Flags": "flags",
         "DnsEntryItem/Host": "domain_name",
-        "RecordData/Host": "record_data",
-        "RecordData/IPv4Address": "record_data",
+        "DnsEntryItem/RecordData/Host": "record_data",
+        "DnsEntryItem/RecordData/IPv4Address": "record_data",
         "DnsEntryItem/RecordName": "record_name",
         "DnsEntryItem/RecordType": "record_type",
         "DnsEntryItem/TimeToLive": "ttl"
@@ -409,6 +409,7 @@ def create_library_obj(search_string, content_string, condition):
 
 def create_network_connection_obj(search_string, content_string, condition):
     from cybox.objects.socket_address_object import SocketAddress
+    from cybox.objects.port_object import Port
     from cybox.objects.network_connection_object import (
         NetworkConnection, Layer7Connections
     )
@@ -438,9 +439,8 @@ def create_network_connection_obj(search_string, content_string, condition):
 
     socket_attrmap = {
         "PortItem/localIP": ("ip_address", "source_socket_address"),
+        "PortItem/remoteIP": ("ip_address", "destination_socket_address"),
         "ProcessItem/PortList/PortItem/localIP": ("ip_address", "source_socket_address"),
-        "PortItem/localPort": ("port", "source_port"),
-        "PortItem/remotePort": ("port", "destination_port")
     }
 
     if search_string in socket_attrmap:
@@ -451,7 +451,7 @@ def create_network_connection_obj(search_string, content_string, condition):
         host = HostField()
         header_fields.host = host
         header.parsed_header = header_fields
-        set_field(host, "domain", content_string, condition)
+        set_field(host, "domain_name", content_string, condition)
     elif search_string == "Network/HTTP_Referer":
         set_field(header_fields, "referer", content_string, condition)
         header.parsed_header = header_fields
@@ -459,11 +459,11 @@ def create_network_connection_obj(search_string, content_string, condition):
         set_field(header, "raw_header", content_string, condition)
     elif search_string == "Network/URI":
         set_field(request_line, "value", content_string, condition)
-        request.http_request_line = request
+        request.http_request_line = request_line
     elif search_string == "Network/UserAgent":
         set_field(header_fields, "user_agent", content_string, condition)
         header.parsed_header = header_fields
-    elif"PortItem/CreationTime" in search_string:
+    elif "PortItem/CreationTime" in search_string:
         set_field(net, "creation_time", content_string, condition)
     else:
         return None
@@ -515,14 +515,18 @@ def create_port_obj(search_string, content_string, condition):
         "PortItem/CreationTime",
         "PortItem/localIP",
         "PortItem/remoteIP"
-        "PortItem/localPort",
-        "PortItem/remotePort",
     )
 
-    if search_string in netconn_keys:
+    attrmap = {
+        "PortItem/localPort": "port_value",
+        "PortItem/remotePort": "port_value",
+        "PortItem/protocol": "layer4_protocol"
+    }
+
+    if search_string in attrmap:
+        set_field(port, attrmap[search_string], content_string, condition)
+    elif search_string in netconn_keys:
         return create_network_connection_obj(search_string, content_string, condition)
-    elif search_string == "PortItem/protocol":
-        set_field(port, "protocol", content_string, condition)
     else:
         return None
 
@@ -847,8 +851,8 @@ def create_system_restore_obj(search_string, content_string, condition):
 
 
 def create_user_obj(search_string, content_string, condition):
-    from cybox.objects.user_account_object import UserAccount, GroupList
-    from cybox.objects.win_user_object import WinGroup
+    from cybox.objects.user_account_object import UserAccount
+    from cybox.objects.win_user_object import WinGroup, WinGroupList
 
     user_account = UserAccount()
     group = WinGroup()
@@ -880,7 +884,7 @@ def create_user_obj(search_string, content_string, condition):
         set_field(user_account, attrmap[search_string], content_string, condition)
     elif search_string == "UserItem/grouplist/groupname":
         set_field(group, "name", content_string, condition)
-        user_account.group_list = GroupList(group)
+        user_account.group_list = WinGroupList(group)
     else:
         return None
             
