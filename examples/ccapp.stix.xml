@@ -8,17 +8,17 @@
 	xmlns:stix="http://stix.mitre.org/stix-1"
 	xmlns:stixCommon="http://stix.mitre.org/common-1"
 	xmlns:stixVocabs="http://stix.mitre.org/default_vocabularies-1"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="openioc:Package-cec819db-d901-4800-a3bb-efac6cf13837" version="1.2">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="openioc:Package-90267743-96f9-4e53-a5a2-079d005d88e4" version="1.2">
     <stix:STIX_Header>
         <stix:Description>CybOX-represented Indicators Translated from OpenIOC File</stix:Description>
     </stix:STIX_Header>
     <stix:Indicators>
-        <stix:Indicator id="openioc:indicator-d2a87f91-9da1-46c5-aec4-b19cb56a9efe" timestamp="2015-08-14T19:32:19.535624+00:00" xsi:type='indicator:IndicatorType'>
+        <stix:Indicator id="openioc:indicator-d7a24bed-9192-45a1-bebd-5f3e5056da46" timestamp="2015-08-18T15:34:43.871774+00:00" xsi:type='indicator:IndicatorType'>
             <indicator:Title>CybOX-represented Indicator Created from OpenIOC File</indicator:Title>
             <indicator:Observable id="openioc:item-d610019c-379f-4d3e-b299-f0b0e5c3313a">
                 <cybox:Observable_Composition operator="OR">
-                    <cybox:Observable id="openioc:Observable-c41a56e1-522d-433d-91fa-87d85667ceb8">
-                        <cybox:Object id="openioc:File-a5439350-3d4d-4718-a9df-a33afeeb62c7">
+                    <cybox:Observable id="openioc:Observable-94533f50-27fe-45bc-8026-4caf690e4237">
+                        <cybox:Object id="openioc:File-78b6f585-4d8b-4c3d-8efb-3f4f6d6773a5">
                             <cybox:Properties xsi:type="FileObj:FileObjectType">
                                 <FileObj:Hashes>
                                     <cyboxCommon:Hash>
@@ -29,8 +29,8 @@
                             </cybox:Properties>
                         </cybox:Object>
                     </cybox:Observable>
-                    <cybox:Observable id="openioc:Observable-f5a8d421-e580-4bd3-bb61-5527fd8e5dc5">
-                        <cybox:Object id="openioc:File-e40c7f51-0585-4f98-b2a6-5d547ab1c34b">
+                    <cybox:Observable id="openioc:Observable-a8326b1d-01f8-4d28-bf77-82ba2fb21c7a">
+                        <cybox:Object id="openioc:File-1e8f272c-47d5-4c99-9df8-a7ed04270677">
                             <cybox:Properties xsi:type="FileObj:FileObjectType">
                                 <FileObj:Hashes>
                                     <cyboxCommon:Hash>
@@ -43,26 +43,26 @@
                     </cybox:Observable>
                     <cybox:Observable id="openioc:item-3902a731-260b-49e8-84a5-77d2a420716e">
                         <cybox:Observable_Composition operator="AND">
-                            <cybox:Observable id="openioc:Observable-1bd89172-2f31-46a2-ad33-599d794f8601">
+                            <cybox:Observable id="openioc:Observable-ca3167c3-1e44-4594-ab77-d621f9ac83d3">
                                 <cybox:Description><![CDATA[Error|Ignore. IndicatorItem not translated. Encountered IOC term 'FileItem/PEInfo/Sections/Section/Name' , which does not currently map to CybOX.]]></cybox:Description>
                             </cybox:Observable>
-                            <cybox:Observable id="openioc:Observable-9ea1c88c-0e4c-4cea-8bef-49f9feb886be">
+                            <cybox:Observable id="openioc:Observable-a7f834fe-89d8-4b00-b99f-1e5a031d1b0a">
                                 <cybox:Description><![CDATA[Error|Ignore. IndicatorItem not translated. Encountered IOC term 'FileItem/PEInfo/DetectedAnomalies/string' , which does not currently map to CybOX.]]></cybox:Description>
                             </cybox:Observable>
-                            <cybox:Observable id="openioc:Observable-36ebf003-5006-4920-9531-a9111757aee0">
+                            <cybox:Observable id="openioc:Observable-ec4b8170-35fa-4893-8cfe-919abf2c8725">
                                 <cybox:Description><![CDATA[Error|Ignore. IndicatorItem not translated. Encountered IOC term 'FileItem/PEInfo/Sections/Section/Name' , which does not currently map to CybOX.]]></cybox:Description>
                             </cybox:Observable>
                             <cybox:Observable id="openioc:item-d9ed6d3a-7141-418d-9ee9-79254b45348a">
                                 <cybox:Observable_Composition operator="OR">
-                                    <cybox:Observable id="openioc:Observable-25afc1a9-319c-4914-83e4-200cf264ee4b">
-                                        <cybox:Object id="openioc:File-0574e817-1abb-4423-a25e-15a216692788">
+                                    <cybox:Observable id="openioc:Observable-5742e77e-d2a3-4d1f-96e5-25c46059e968">
+                                        <cybox:Object id="openioc:File-c1eb7abe-188c-4349-abf2-f3adb6ebb636">
                                             <cybox:Properties xsi:type="FileObj:FileObjectType">
                                                 <FileObj:File_Name condition="Equals">wbc.exe</FileObj:File_Name>
                                             </cybox:Properties>
                                         </cybox:Object>
                                     </cybox:Observable>
-                                    <cybox:Observable id="openioc:Observable-1233565d-b2c0-4bc6-b50d-f4f3404f5dba">
-                                        <cybox:Object id="openioc:File-3c45ac3b-9a63-44ff-88bc-c31cc24852f0">
+                                    <cybox:Observable id="openioc:Observable-c3161f0d-522e-4bce-b4ec-d7e512b71819">
+                                        <cybox:Object id="openioc:File-3a170890-6b49-4d99-a7e9-28ecff1cc071">
                                             <cybox:Properties xsi:type="FileObj:FileObjectType">
                                                 <FileObj:File_Name condition="Equals">ccapp.exe</FileObj:File_Name>
                                             </cybox:Properties>
@@ -72,15 +72,15 @@
                             </cybox:Observable>
                             <cybox:Observable id="openioc:item-05a19916-392a-4835-8be2-1ab385005912">
                                 <cybox:Observable_Composition operator="OR">
-                                    <cybox:Observable id="openioc:Observable-c5c51cbd-d066-4113-ae0a-b5c394302f03">
-                                        <cybox:Object id="openioc:File-5e7d6cb3-4567-4c8d-b1bb-6c228f38e353">
+                                    <cybox:Observable id="openioc:Observable-327a66f7-c778-4d29-baa4-8ccf21f8313e">
+                                        <cybox:Object id="openioc:File-15a7fd96-2b0b-48e2-91b3-1804bed13a0f">
                                             <cybox:Properties xsi:type="FileObj:FileObjectType">
                                                 <FileObj:File_Path condition="Contains">WINDOWS</FileObj:File_Path>
                                             </cybox:Properties>
                                         </cybox:Object>
                                     </cybox:Observable>
-                                    <cybox:Observable id="openioc:Observable-351e08cf-2257-4bb6-83cf-1701ec180ff8">
-                                        <cybox:Object id="openioc:File-2f133e17-1b81-49ac-8d88-57d3975ccf46">
+                                    <cybox:Observable id="openioc:Observable-c6175c39-7bf3-48c8-9520-87fd1a2f31c6">
+                                        <cybox:Object id="openioc:File-f2bf86bd-016e-4992-ae34-040c625b1dd8">
                                             <cybox:Properties xsi:type="FileObj:FileObjectType">
                                                 <FileObj:File_Path condition="Contains">WINNT</FileObj:File_Path>
                                             </cybox:Properties>
@@ -96,7 +96,7 @@
                 <stixCommon:Tools>
                     <cyboxCommon:Tool>
                         <cyboxCommon:Name>OpenIOC to STIX Utility</cyboxCommon:Name>
-                        <cyboxCommon:Version>1.0</cyboxCommon:Version>
+                        <cyboxCommon:Version>1.0.1</cyboxCommon:Version>
                     </cyboxCommon:Tool>
                 </stixCommon:Tools>
             </indicator:Producer>
