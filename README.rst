@@ -7,11 +7,11 @@ Generates STIX Indicator Output from an OpenIOC v1.0 XML File.
 Overview
 --------
 
-The OpenIOC to STIX script generates STIX Indicators from an OpenIOC v1.0
+The **openioc-to-stix** script generates STIX Indicators from an OpenIOC v1.0
 XML file.
 
 * Compatible with OpenIOC v1.0
-* Generates STIX v1.2 and CybOX v2.1.1 content.
+* Generates STIX v1.2 and CybOX v2.1 content.
 
 Please refer to the following websites for more information about the STIX,
 CybOX, and OpenIOC efforts.
@@ -50,7 +50,9 @@ by using `pip`.
     $ cd /path/to/cloned/openioc-to-stix/repo/
     $ pip install .
 
-**Note:** Running ``python setup.py install`` directly may install unstable, pre-release versions of python-stix and python-cybox. THESE WILL NOT WORK WITH OPENIOC-TO-STIX.
+**Warning:** Running ``python setup.py install`` directly may install unstable,
+pre-release versions of python-stix and python-cybox. **THESE WILL NOT WORK WITH
+OPENIOC-TO-STIX.**
 
 Usage
 -----
@@ -66,7 +68,7 @@ To use the script, run the following command:
 
 ::
 
-    $ python openioc_to_stix.py -i <OpenIOC XML file> -o <STIX XML file>
+    $ python openioc-to-stix.py -i <OpenIOC XML file> -o <STIX XML file>
 
 Unsupported indicator items or those that error out during translation will be
 translated into an empty Observable with a description of the error in order
