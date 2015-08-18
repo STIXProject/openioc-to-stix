@@ -2,9 +2,9 @@
 # Copyright (c) 2015, The MITRE Corporation. All rights reserved.
 # See LICENSE.txt for complete terms.
 """
-OpenIOC to STIX Script
-Wraps output of OpenIOC to CybOX Script
+openioc-to-stix: OpenIOC to STIX conversion utility.
 """
+
 # builtin
 import logging
 import argparse
@@ -45,6 +45,7 @@ def get_arg_parser():
     parser.add_argument(
         "-v",
         dest="verbose",
+        action="store_true",
         default=False,
         help="Verbose output."
     )
