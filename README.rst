@@ -20,6 +20,15 @@ CybOX, and OpenIOC efforts.
 * CybOX - http://cybox.mitre.org
 * OpenIOC - http://www.openioc.org
 
+Requirements
+------------
+
+* Python 2.7
+* python-stix >= v1.2.0.0 (stable)
+* python-cybox >= 2.1.0.12 (stable)
+
+**Note:** This script was written and tested with Python 2.7 and may not be
+compatible with other Python versions.
 
 Installation
 ------------
@@ -34,15 +43,14 @@ Install dependencies with pip:
     $ pip install -r requirements.txt
 
 You can also install **openioc-to-stix** into your ``site-packages`` and ``PATH``
-by running the `setup.py` file (this will also install dependencies):
+by using `pip`.
 
 ::
 
-    $ python setup.py install
+    $ cd /path/to/cloned/openioc-to-stix/repo/
+    $ pip install .
 
-**Note:** This script was written and tested with Python 2.7 and may not be
-compatible with other Python versions.
-
+**Note:** Running ``python setup.py install`` directly may install unstable, pre-release versions of python-stix and python-cybox. THESE WILL NOT WORK WITH OPENIOC-TO-STIX.
 
 Usage
 -----
