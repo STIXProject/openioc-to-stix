@@ -2,8 +2,7 @@
 # Copyright (c) 2015, The MITRE Corporation. All rights reserved.
 # See LICENSE.txt for complete terms.
 """
-OpenIOC to CybOX Translator.
-Generates valid CybOX v2.1 XML output from OpenIOCs
+openioc-to-cybox: OpenIOC to CybOX conversion utility.
 """
 
 # builtin
