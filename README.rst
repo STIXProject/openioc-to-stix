@@ -13,11 +13,11 @@ XML file.
 * Compatible with OpenIOC v1.0
 * Generates STIX v1.2 and CybOX v2.1 content.
 
-Please refer to the following websites for more information about the STIX,
-CybOX, and OpenIOC efforts.
+Please refer to the following websites for more information about the Structured Threat Information Expression (STIX),
+Cyber Observable eXpression (CybOX), and OpenIOC efforts.
 
-* STIX - http://stix.mitre.org
-* CybOX - http://cybox.mitre.org
+* STIX - https://stixproject.github.io/
+* CybOX - https://cyboxproject.github.io/
 * OpenIOC - http://www.openioc.org
 
 Requirements
