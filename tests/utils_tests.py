@@ -1,7 +1,10 @@
 # Copyright (c) 2015, The MITRE Corporation. All rights reserved.
 # See LICENSE.txt for complete terms.
 
-import unittest
+try:
+    import unittest2 as unittest
+except:
+    import unittest
 
 import cybox
 from cybox.core import Observable, ObservableComposition, Event

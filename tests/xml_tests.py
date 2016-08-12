@@ -1,8 +1,11 @@
 # Copyright (c) 2015, The MITRE Corporation. All rights reserved.
 # See LICENSE.txt for complete terms.
 
-import unittest
 from StringIO import StringIO
+try:
+    import unittest2 as unittest
+except:
+    import unittest
 
 import lxml.etree as ET
 
