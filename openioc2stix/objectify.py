@@ -71,11 +71,11 @@ def set_field(obj, attrname, value, condition=None):
         return _set_field(obj, attrname, value, condition)
 
 
-def has_content(object):
-    if not hasattr(object, '_fields'):
+def has_content(obj):
+    if not hasattr(obj, '_fields'):
         return False
 
-    return any(x for x in object._fields.itervalues())
+    return any(x for x in obj._fields.itervalues())
 
 
 ## primary object functions
@@ -409,7 +409,6 @@ def create_library_obj(search_string, content_string, condition):
 
 def create_network_connection_obj(search_string, content_string, condition):
     from cybox.objects.socket_address_object import SocketAddress
-    from cybox.objects.port_object import Port
     from cybox.objects.network_connection_object import (
         NetworkConnection, Layer7Connections
     )
@@ -656,7 +655,7 @@ def create_registry_obj(search_string, content_string, condition):
     value_attrmap = {
         "RegistryItem/Text": "data",
         "RegistryItem/Value": "data",
-         "RegistryItem/Type": "data_type",
+        "RegistryItem/Type": "data_type",
         "RegistryItem/ValueName": "name"
     }
 
@@ -1226,7 +1225,8 @@ def create_pefile_obj(search_string, content_string, condition):
         exports.exported_functions = funclist
         winexec.exports = exports
         set_field(func, "function_name", content_string, condition)
-    elif search_string == "FileItem/PEInfo/ImportedModules/Module/ImportedFunctions/string" or search_string == "DriverItem/PEInfo/ImportedModules/Module/ImportedFunctions/string":
+    elif search_string in ["FileItem/PEInfo/ImportedModules/Module/ImportedFunctions/string",
+                           "DriverItem/PEInfo/ImportedModules/Module/ImportedFunctions/string"]:
         import_ = PEImport()
         imports = PEImportList(import_)
         func = PEImportedFunction()

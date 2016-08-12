@@ -27,8 +27,8 @@ EXIT_FAILURE = 1
 
 
 def error(fmt, *args):
-     LOG.error(fmt, *args)
-     sys.exit(EXIT_FAILURE)
+    LOG.error(fmt, *args)
+    sys.exit(EXIT_FAILURE)
 
 
 def get_arg_parser():
@@ -105,6 +105,6 @@ def main():
         LOG.exception(ex)
         sys.exit(EXIT_FAILURE)
 
-        
+
 if __name__ == "__main__":
-    main()    
+    main()

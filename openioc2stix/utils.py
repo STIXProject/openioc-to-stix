@@ -4,22 +4,23 @@
 from cybox.common.properties import _LongBase, _IntegerBase, _FloatBase
 
 try:
+    # Old versions of cybox (prior to mixbox) defined this class.
     from cybox import TypedField
-except:
+except ImportError:
     from mixbox.fields import TypedField
 
 
 NUMERIC_FIELD_BASES = (_LongBase, _IntegerBase, _FloatBase)
 
 
-def normalize_id(id):
+def normalize_id(id_):
     """Normalize any ids used in the IOC to make the compatible with CybOX
     This is just in case the normal UUID type is not used.
     """
-    if id is None:
+    if id_ is None:
         return None
 
-    return id.replace(":", "-")
+    return id_.replace(":", "-")
 
 
 def forcestring(value):
