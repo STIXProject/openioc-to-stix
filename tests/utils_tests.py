@@ -15,12 +15,12 @@ from openioc2stix import utils
 
 
 class MockObject(ObjectProperties):
-    # Class used for testing cybox.TypesField attributes
-    Long  = cybox.TypedField('Long', _LongBase)
-    Int   = cybox.TypedField('Int', _IntegerBase)
-    Float = cybox.TypedField('Float', _FloatBase)
-    Str   = cybox.TypedField('Str', String)
-    Non   = cybox.TypedField('None', None)
+    # Class used for testing TypesField attributes
+    Long  = utils.TypedField('Long', _LongBase)
+    Int   = utils.TypedField('Int', _IntegerBase)
+    Float = utils.TypedField('Float', _FloatBase)
+    Str   = utils.TypedField('Str', String)
+    Non   = utils.TypedField('None', None)
 
 class WrongMockObject:
     # Class used for testing wrong attribute types
@@ -63,7 +63,7 @@ class UtilsTest(unittest.TestCase):
         self.assertIsNone(utils.partial_match(test_dict, no_key))
 
     def test_is_numeric(self):
-        # Check to see if the correct numerical cybox.TypedField is returned by `is_numeric`
+        # Check to see if the correct numerical TypedField is returned by `is_numeric`
 
         # Only true if a numeric TypedField is being checked
         test_object = MockObject()
@@ -102,7 +102,7 @@ class UtilsTest(unittest.TestCase):
         test = Observable()
         obs  = ObservableComposition()
         test.observable_composition = obs
-        test.observable_composition.observables = obs
+        test.observable_composition.observables = [Observable()]
         self.assertFalse(utils.is_empty_observable(test))
 
 if __name__ == "__main__":

@@ -1,8 +1,12 @@
 # Copyright (c) 2015, The MITRE Corporation. All rights reserved.
 # See LICENSE.txt for complete terms.
 
-import cybox
 from cybox.common.properties import _LongBase, _IntegerBase, _FloatBase
+
+try:
+    from cybox import TypedField
+except:
+    from mixbox.fields import TypedField
 
 
 NUMERIC_FIELD_BASES = (_LongBase, _IntegerBase, _FloatBase)
@@ -47,7 +51,7 @@ def is_numeric(obj, attrname):
     klass = obj.__class__
     field = getattr(klass, attrname)
 
-    if not isinstance(field, cybox.TypedField):
+    if not isinstance(field, TypedField):
         return False
 
     if not field.type_:
