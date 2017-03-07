@@ -31,9 +31,12 @@ fn_readme = join(BASE_DIR, "README.rst")
 with open(fn_readme) as f:
     readme = f.read()
 
-install_requires = ['lxml>=3.3.5',
-                    'cybox>=2.1.0.12',
-                    'stix>=1.2.0.0']
+install_requires = [
+    'cybox>=2.1.0.13',
+    'lxml>=3.3.5',
+    'mixbox>=1.0.1',
+    'stix>=1.2.0.2',
+]
 
 # Python 2.6 does not come with argparse
 try:

@@ -10,6 +10,7 @@ import logging
 import argparse
 
 # python-stix
+from mixbox import idgen, namespaces
 from stix import utils
 
 # Internal
@@ -78,7 +79,8 @@ def main():
     # initialize logging
     init_logging(args.verbose)
     # Set the namespace to be used in the STIX Package
-    utils.set_id_namespace({"http://openioc.org/openioc":"openioc"})
+    ns = namespaces.Namespace("http://openioc.org/openioc", "openioc", "")
+    idgen.set_id_namespace(ns)
 
     # Create Observables from binding object
     stix_package = translate.to_stix(args.infile)

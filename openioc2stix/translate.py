@@ -12,7 +12,7 @@ from cybox.core import Observables, Observable, ObservableComposition
 from cybox.common import ToolInformationList, ToolInformation
 
 import stix.utils
-from stix.core import STIXPackage, STIXHeader
+from stix.core import STIXPackage, STIXHeader, Indicators
 from stix.common import InformationSource
 from stix.common.vocabs import PackageIntent
 from stix.indicator import Indicator
@@ -239,7 +239,7 @@ def to_stix(infile):
     stix_package = STIXPackage()
 
     # Set the Indicators collection
-    stix_package.indicators = indicators
+    stix_package.indicators = Indicators(indicators)
 
     # Create and write the STIX Header. Warning: these fields have been
     # deprecated in STIX v1.2!
