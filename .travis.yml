@@ -1,18 +1,12 @@
 language: python
 
 python:
-  - 2.7
- 
-env:
-  - TOXENV=py26-stix111
-  - TOXENV=py26-stix120old
-  - TOXENV=py26-stix120
-  - TOXENV=py27-stix111
-  - TOXENV=py27-stix120old
-  - TOXENV=py27-stix120
+  - "2.6"
+  - "2.7"
 
 install:
-  - pip install -U tox
+  - pip install -U pip setuptools
+  - pip install tox-travis
 
 script:
   - tox
