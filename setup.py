@@ -54,7 +54,6 @@ setup(
     version=get_version(),
     packages=find_packages(),
     scripts=['openioc-to-stix.py', 'openioc-to-cybox.py'],
-    include_package_data=True,
     install_requires=install_requires,
     long_description=readme,
     keywords="stix cybox openioc xml openioc-to-stix openioc-to-cybox"
