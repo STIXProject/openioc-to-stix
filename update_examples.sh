@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2015, The MITRE Corporation. All rights reserved.
+# Copyright (c) 2017, The MITRE Corporation. All rights reserved.
 # See LICENSE.txt for complete terms.
 
 for i in $( ls examples/*.ioc.xml | sed 's/examples\///' | sed 's/\.ioc\.xml//'); do
