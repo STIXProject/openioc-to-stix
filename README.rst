@@ -3,6 +3,20 @@ openioc-to-stix
 
 Generates STIX Indicator Output from an OpenIOC v1.0 XML File.
 
+:Source: https://github.com/STIXProject/openioc-to-stix
+:Download: https://pypi.python.org/pypi/openioc-to-stix
+
+|travis badge| |landscape.io badge| |version badge|
+
+.. |travis badge| image:: https://api.travis-ci.org/STIXProject/openioc-to-stix.svg?branch=master
+   :target: https://travis-ci.org/STIXProject/openioc-to-stix
+   :alt: Build Status
+.. |landscape.io badge| image:: https://landscape.io/github/STIXProject/openioc-to-stix/master/landscape.svg?style=flat
+   :target: https://landscape.io/github/STIXProject/openioc-to-stix/master
+   :alt: Code Health
+.. |version badge| image:: https://img.shields.io/pypi/v/openioc-to-stix.svg?maxAge=3600
+   :target: https://pypi.python.org/pypi/cybox/
+
 
 Overview
 --------
