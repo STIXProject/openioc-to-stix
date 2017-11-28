@@ -476,11 +476,11 @@ def create_net_route_obj(search_string, content_string, condition):
     net  = NetworkRouteEntry()
     addr = Address(category=Address.CAT_IPV4)
 
-    addr_keys = {
+    addr_keys = set([
         "RouteEntryItem/Destination",
         "RouteEntryItem/Gateway",
         "RouteEntryItem/Netmask"
-    }
+    ])
 
     attr_map = {
         "RouteEntryItem/Destination": "destination_address",
