@@ -244,7 +244,7 @@ def create_email_obj(search_string, content_string, condition):
         return Object(email)
 
     email = Object(email)
-    email.add_related(attachment)
+    email.add_related(attachment, "Contains")
 
     return email
 
@@ -468,7 +468,7 @@ def create_network_connection_obj(search_string, content_string, condition):
         return None
 
     return Object(net)
-    
+
 def create_net_route_obj(search_string, content_string, condition):
     from cybox.objects.network_route_entry_object import NetworkRouteEntry
     from cybox.objects.address_object import Address
@@ -886,7 +886,7 @@ def create_user_obj(search_string, content_string, condition):
         user_account.group_list = WinGroupList(group)
     else:
         return None
-            
+
     return Object(user_account)
 
 def create_volume_obj(search_string, content_string, condition):
@@ -1254,7 +1254,7 @@ def create_pefile_obj(search_string, content_string, condition):
         set_field(header, "characteristics", content_string, condition)
     else:
         return None
-    
+
     return Object(winexec)
 
 def create_win_user_obj(search_string, content_string, condition):
@@ -1289,7 +1289,7 @@ def create_account_obj(search_string, content_string, condition):
         set_field(account, attrmap[search_string], content_string, condition)
     else:
         return None
-    
+
     return Object(account)
 
 

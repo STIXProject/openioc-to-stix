@@ -1,15 +1,19 @@
 # Copyright (c) 2017, The MITRE Corporation. All rights reserved.
 # See LICENSE.txt for complete terms.
 
+import os
+from StringIO import StringIO
+
 try:
     import unittest2 as unittest
-except:
+except ImportError:
     import unittest
 
-from StringIO import StringIO
-from openioc2stix import openioc
-
 import lxml.etree as ET
+
+from openioc2stix import openioc
+from openioc2stix import translate
+
 
 OPENIOC_XML = """<?xml version="1.0" encoding="us-ascii"?>
 <ioc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" id="fc2d3e44-80a6-4add-ad94-de9f289e62ff" last-modified="2011-10-28T21:00:13" xmlns="http://schemas.mandiant.com/2010/ioc">
@@ -73,6 +77,19 @@ OPENIOC_XML = """<?xml version="1.0" encoding="us-ascii"?>
     </Indicator>
 </ioc>
 """
+
+
+class EmailTest(unittest.TestCase):
+
+    # https://github.com/STIXProject/openioc-to-stix/issues/17
+    def test_email_attachment(self):
+        test_file = os.path.join(os.path.dirname(__file__), "data",
+                                 "iocbucket_9c2a7a3b3c8ea33d8e05ad2f0557cd56b5828a51_mhadi.ioc")
+
+        stix_pkg = translate.to_stix(test_file)
+        observable = stix_pkg.indicators[0].observable.observable_composition.observables[7]
+        self.assertEquals(observable.object_.related_objects[0].relationship, "Contains")
+
 
 class OpeniocTest(unittest.TestCase):
 

@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<ioc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" id="72c6e8a1-3c32-4e97-a899-d1ffc1565891" last-modified="2014-06-16T02:32:34" xmlns="http://schemas.mandiant.com/2010/ioc">
+  <short_description>Mhadi Campaign (APT)</short_description>
+  <description>For almost a year, an ongoing campaign to infiltrate computer systems throughout the Middle East has targeted individuals across Iran, Israel, Afghanistan and others scattered across the globe.  The campaign relied on a couple of well known, simpler attack techniques to deliver the payloads, which reveals a bit about the victims online awareness. Large amounts of data collection reveal the focus of the campaign on Middle Eastern critical infrastructure engineering firms, government agencies, financial houses, and academia.  The Madi infrastructure performs its surveillance operations and communications with a simple implementation as well. Five command and control (C2) web servers are currently up and running Microsoft IIS v7.0 web server along with exposed Microsoft Terminal service for RDP access, all maintaining identical copies of the custom, C# server manager software.</description>
+  <authored_by>@iocbucket</authored_by>
+  <authored_date>2014-06-16T02:10:28</authored_date>
+  <links />
+  <definition>
+    <Indicator operator="OR" id="3ddc966b-ac3c-4061-9f5a-b9d46b48b71c">
+      <IndicatorItem id="615c2ded-0de1-413d-b653-12a1f4d44972" condition="contains">
+        <Context document="Network" search="Network/DNS" type="mir" />
+        <Content type="string">hatman.in</Content>
+      </IndicatorItem>
+      <IndicatorItem id="f7b100c4-ac2b-44c5-9808-040f5a32dc7b" condition="contains">
+        <Context document="Network" search="Network/DNS" type="mir" />
+        <Content type="string">majakil.in</Content>
+      </IndicatorItem>
+      <IndicatorItem id="22f2095c-a2d7-4ac1-8169-9045b846d13a" condition="contains">
+        <Context document="Network" search="Network/DNS" type="mir" />
+        <Content type="string">manageweb.in</Content>
+      </IndicatorItem>
+      <IndicatorItem id="e9184a93-193c-4932-9f8a-4317064ad6cb" condition="contains">
+        <Context document="Network" search="Network/DNS" type="mir" />
+        <Content type="string">parsdev.net</Content>
+      </IndicatorItem>
+      <IndicatorItem id="4824a1a5-75cc-4808-8322-42edc4777f32" condition="contains">
+        <Context document="Network" search="Network/DNS" type="mir" />
+        <Content type="string">ieeei.in</Content>
+      </IndicatorItem>
+      <IndicatorItem id="579bcfe5-8e78-4e2a-b04d-0feb1149de90" condition="contains">
+        <Context document="PortItem" search="PortItem/remoteIP" type="mir" />
+        <Content type="IP">174.142.57</Content>
+      </IndicatorItem>
+      <IndicatorItem id="8fae3eff-cb43-4ae0-bb3a-bd247a85db87" condition="contains">
+        <Context document="PortItem" search="PortItem/remoteIP" type="mir" />
+        <Content type="IP">67.205.106</Content>
+      </IndicatorItem>
+      <IndicatorItem id="8e59b38a-01c6-41d9-974f-c7e557dafce7" condition="is">
+        <Context document="Email" search="Email/Attachment/Name" type="mir" />
+        <Content type="string">Magic_Machine1123.pps</Content>
+      </IndicatorItem>
+      <IndicatorItem id="0742066a-c0b4-46e5-98ee-d3d3f7cbb461" condition="is">
+        <Context document="Email" search="Email/Attachment/Name" type="mir" />
+        <Content type="string">Moses_pic1.pps</Content>
+      </IndicatorItem>
+      <IndicatorItem id="ef7e472f-77d3-4d04-bd39-883a0ac6fe98" condition="contains">
+        <Context document="ProcessItem" search="ProcessItem/HandleList/Handle/Name" type="mir" />
+        <Content type="string">miMutexCopy</Content>
+      </IndicatorItem>
+      <IndicatorItem id="988b4634-331b-4330-9975-6417dec3759f" condition="is">
+        <Context document="FileItem" search="FileItem/FileName" type="mir" />
+        <Content type="string">datikal.dll</Content>
+      </IndicatorItem>
+      <IndicatorItem id="26c3cdf0-87a0-4acc-8cda-9be0236b7cce" condition="is">
+        <Context document="FileItem" search="FileItem/FileName" type="mir" />
+        <Content type="string">poki65.pik</Content>
+      </IndicatorItem>
+      <IndicatorItem id="48a16c80-1a0d-4654-906b-f594e6706c24" condition="contains">
+        <Context document="PortItem" search="PortItem/remoteIP" type="mir" />
+        <Content type="IP">72.55.</Content>
+      </IndicatorItem>
+      <IndicatorItem id="25424ac0-68a4-46d2-9230-bc58b4fc4cae" condition="contains">
+        <Context document="Network" search="Network/URI" type="mir" />
+        <Content type="string">./madi-check http://72.55.</Content>
+      </IndicatorItem>
+      <IndicatorItem id="7e2150d7-7ed2-4547-a9b0-919e111f084c" condition="is">
+        <Context document="Email" search="Email/From" type="mir" />
+        <Content type="string">afs0000n@ymail.com</Content>
+      </IndicatorItem>
+      <IndicatorItem id="032be9b6-495d-450c-8025-d141c6217b51" condition="contains">
+        <Context document="DnsEntryItem" search="DnsEntryItem/RecordName" type="mir" />
+        <Content type="string">afs0000n.earth.orderbox-dns.com</Content>
+      </IndicatorItem>
+      <IndicatorItem id="bd73df33-70e1-4251-8c84-505356bf7ae8" condition="contains">
+        <Context document="DnsEntryItem" search="DnsEntryItem/RecordName" type="mir" />
+        <Content type="string">afs0000n.mars.orderbox-dns.com</Content>
+      </IndicatorItem>
+      <IndicatorItem id="442076b4-4d65-4dca-be99-34006424a153" condition="contains">
+        <Context document="DnsEntryItem" search="DnsEntryItem/RecordName" type="mir" />
+        <Content type="string">afs0000n.venus.orderbox-dns.com</Content>
+      </IndicatorItem>
+      <IndicatorItem id="5e418ae7-947a-4593-96db-5f506976d0bd" condition="contains">
+        <Context document="DnsEntryItem" search="DnsEntryItem/RecordName" type="mir" />
+        <Content type="string">afs0000n.blogsky.com</Content>
+      </IndicatorItem>
+      <IndicatorItem id="714c749e-b664-4482-b083-e91699090a9b" condition="contains">
+        <Context document="DnsEntryItem" search="DnsEntryItem/RecordName" type="mir" />
+        <Content type="string">afs0000n.mercury.orderbox-dns.com</Content>
+      </IndicatorItem>
+      <IndicatorItem id="00b9cf08-f3c1-4107-b08d-14a5348f9412" condition="is">
+        <Context document="Email" search="Email/From" type="mir" />
+        <Content type="string">yaser.mahoodi0@gmail.com</Content>
+      </IndicatorItem>
+      <Indicator operator="AND" id="1e851eb5-f965-4127-af28-fb9f515af7c5">
+        <IndicatorItem id="1574ea89-6f87-4003-8fca-762a55fd11a4" condition="contains">
+          <Context document="FileItem" search="FileItem/FilePath" type="mir" />
+          <Content type="string">c:\documents and settings\Printhood</Content>
+        </IndicatorItem>
+        <Indicator operator="OR" id="9c181317-7fd6-4268-847a-ae81845f9155">
+          <IndicatorItem id="5dfc421b-9636-4c51-9b9d-3e9baf82612d" condition="is">
+            <Context document="FileItem" search="FileItem/FileName" type="mir" />
+            <Content type="string">FIE.dll</Content>
+          </IndicatorItem>
+          <IndicatorItem id="c77bd1f8-40b9-40ba-a18a-9f7aa0aaaef7" condition="is">
+            <Context document="FileItem" search="FileItem/FileName" type="mir" />
+            <Content type="string">xdat.dll</Content>
+          </IndicatorItem>
+          <IndicatorItem id="b978e6dc-d092-4aee-9c7c-09b9c3999820" condition="is">
+            <Context document="FileItem" search="FileItem/FileName" type="mir" />
+            <Content type="string">BIE.dll</Content>
+          </IndicatorItem>
+          <IndicatorItem id="e0299900-7d8e-49e1-ba9b-7774407be3c1" condition="is">
+            <Context document="FileItem" search="FileItem/FileName" type="mir" />
+            <Content type="string">SHK.dll</Content>
+          </IndicatorItem>
+          <IndicatorItem id="a0513a71-642c-4450-943e-ef1b3c264552" condition="is">
+            <Context document="FileItem" search="FileItem/FileName" type="mir" />
+            <Content type="string">nam.dll</Content>
+          </IndicatorItem>
+          <IndicatorItem id="5fbec111-cb65-4803-98c9-e61dd28f91a8" condition="is">
+            <Context document="FileItem" search="FileItem/FileName" type="mir" />
+            <Content type="string">SIK.dll</Content>
+          </IndicatorItem>
+          <IndicatorItem id="fa31ec45-b073-4a33-8ebe-1c12b12a37b3" condition="is">
+            <Context document="FileItem" search="FileItem/FileExtension" type="mir" />
+            <Content type="string">.dll</Content>
+          </IndicatorItem>
+          <IndicatorItem id="fb0e5647-22bf-47e5-b9ef-8b39e51dab86" condition="is">
+            <Context document="FileItem" search="FileItem/FileExtension" type="mir" />
+            <Content type="string">.exe</Content>
+          </IndicatorItem>
+        </Indicator>
+      </Indicator>
+      <Indicator operator="AND" id="1bcaa0cd-7c7a-4f35-9f1d-4a8207a3dbb1">
+        <IndicatorItem id="6f89e88a-45fe-4710-b6fd-3641e72fe8bf" condition="contains">
+          <Context document="ProcessItem" search="ProcessItem/path" type="mir" />
+          <Content type="string">templates</Content>
+        </IndicatorItem>
+        <Indicator operator="OR" id="3d0b32eb-0e80-4666-aa26-80cb2a538d5d">
+          <IndicatorItem id="f67af2ea-0036-4c88-acfa-d93dfcbbc904" condition="is">
+            <Context document="ProcessItem" search="ProcessItem/name" type="mir" />
+            <Content type="string">iexplore.exe</Content>
+          </IndicatorItem>
+          <IndicatorItem id="7515ea21-74c7-4830-b739-83eba2075d8b" condition="is">
+            <Context document="ProcessItem" search="ProcessItem/name" type="mir" />
+            <Content type="string">UpdateOffice.exe</Content>
+          </IndicatorItem>
+          <IndicatorItem id="de857fb7-f2ad-4c10-91ae-bf9737964899" condition="is">
+            <Context document="ProcessItem" search="ProcessItem/name" type="mir" />
+            <Content type="string">OfficeDesktop.exe</Content>
+          </IndicatorItem>
+          <IndicatorItem id="e73c3a6f-d795-4c6c-afda-c5898d3a6240" condition="is">
+            <Context document="FileItem" search="FileItem/FileExtension" type="mir" />
+            <Content type="string">.dll</Content>
+          </IndicatorItem>
+          <IndicatorItem id="1331efd8-4410-430e-baa8-904c58d91e17" condition="is">
+            <Context document="FileItem" search="FileItem/FileExtension" type="mir" />
+            <Content type="string">.exe</Content>
+          </IndicatorItem>
+        </Indicator>
+      </Indicator>
+    </Indicator>
+  </definition>
+</ioc>
