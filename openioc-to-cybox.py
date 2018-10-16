@@ -9,6 +9,7 @@ openioc-to-cybox: OpenIOC to CybOX conversion utility.
 import sys
 import argparse
 import logging
+import codecs
 
 # python-cybox
 import cybox.utils
@@ -17,6 +18,9 @@ import cybox.utils
 from openioc2stix import translate
 from openioc2stix.version import __version__
 
+# mixbox
+from mixbox.idgen import set_id_namespace
+from mixbox.namespaces import Namespace
 
 # Module logger.
 LOG = logging.getLogger(__name__)
@@ -75,13 +79,16 @@ def write_observables(observables, outfn):
     namespaces = {}
     xml = observables.to_xml(namespace_dict=namespaces)
 
-    with open(outfn, 'w') as outfile:
-        outfile.write('<?xml version="1.0" encoding="utf-8"?>\n')
+    with open(outfn, 'wb') as outfile:
+        bytes = codecs.encode('<?xml version="1.0" encoding="utf-8"?>\n')
+        outfile.write(bytes)
         outfile.write(xml)
 
 def init_id_namespace():
-    ns = cybox.utils.Namespace(name="http://openioc.org/", prefix="openioc")
-    cybox.utils.set_id_namespace(ns)
+    # setup namespace...
+    short_namespace = "openioc"
+    namespace = Namespace("http://openioc.org/", short_namespace)
+    set_id_namespace(namespace)
 
 
 def main():

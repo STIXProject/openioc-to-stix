@@ -2,7 +2,7 @@
 # See LICENSE.txt for complete terms.
 
 import os
-from StringIO import StringIO
+from io import StringIO
 
 try:
     import unittest2 as unittest
@@ -88,7 +88,7 @@ class EmailTest(unittest.TestCase):
 
         stix_pkg = translate.to_stix(test_file)
         observable = stix_pkg.indicators[0].observable.observable_composition.observables[7]
-        self.assertEquals(observable.object_.related_objects[0].relationship, "Contains")
+        self.assertEqual(observable.object_.related_objects[0].relationship, "Contains")
 
 
 class OpeniocTest(unittest.TestCase):

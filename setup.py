@@ -18,15 +18,6 @@ def get_version():
                 return version
         raise AttributeError("Package does not have a __version__")
 
-
-py_maj, py_minor = sys.version_info[:2]
-
-if py_maj != 2:
-    raise Exception('openioc-to-stix required Python 2.6/2.7')
-
-if (py_maj, py_minor) < (2, 6):
-    raise Exception('openioc-to-stix requires Python 2.6/2.7')
-
 fn_readme = join(BASE_DIR, "README.rst")
 with open(fn_readme) as f:
     readme = f.read()

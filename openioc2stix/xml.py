@@ -80,7 +80,7 @@ def sanitize(string):
              Otherwise original string is returned.
 
     """
-    if not isinstance(string, basestring):
+    if not isinstance(string, str):
         return string
 
     # Remove CDATA wrapper if it existed.

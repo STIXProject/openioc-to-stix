@@ -41,7 +41,7 @@ def partial_match(dict_, key):
     if key in dict_:
         return dict_[key]
 
-    for partial, value in dict_.iteritems():
+    for partial, value in dict_.items():
         if partial in key:
             return value
 

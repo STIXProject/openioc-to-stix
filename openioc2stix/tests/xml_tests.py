@@ -1,7 +1,7 @@
 # Copyright (c) 2017, The MITRE Corporation. All rights reserved.
 # See LICENSE.txt for complete terms.
 
-from StringIO import StringIO
+from io import StringIO
 try:
     import unittest2 as unittest
 except:

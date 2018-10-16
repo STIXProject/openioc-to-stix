@@ -75,7 +75,7 @@ def has_content(obj):
     if not hasattr(obj, '_fields'):
         return False
 
-    return any(x for x in obj._fields.itervalues())
+    return any(x for x in obj._fields.values())
 
 
 ## primary object functions
