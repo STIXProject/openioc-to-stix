@@ -56,7 +56,7 @@ def get_arg_parser():
 
 @utils.silence_warnings
 def write_package(package, outfn):
-    with open(outfn, "bw") as f:
+    with open(outfn, 'wb') as f:
         xml = package.to_xml()
         f.write(xml)
 

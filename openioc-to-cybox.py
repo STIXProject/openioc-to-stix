@@ -87,7 +87,7 @@ def write_observables(observables, outfn):
 def init_id_namespace():
     # setup namespace...
     short_namespace = "openioc"
-    namespace = Namespace("http://openioc.org/", short_namespace)
+    namespace = Namespace("http://openioc.org/", short_namespace, "")
     set_id_namespace(namespace)
 
 

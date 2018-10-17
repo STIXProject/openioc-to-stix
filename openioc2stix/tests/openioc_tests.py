@@ -2,7 +2,6 @@
 # See LICENSE.txt for complete terms.
 
 import os
-from io import StringIO
 
 try:
     import unittest2 as unittest
@@ -10,10 +9,10 @@ except ImportError:
     import unittest
 
 import lxml.etree as ET
+from mixbox.vendor.six import StringIO
 
 from openioc2stix import openioc
 from openioc2stix import translate
-
 
 OPENIOC_XML = """<?xml version="1.0" encoding="us-ascii"?>
 <ioc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" id="fc2d3e44-80a6-4add-ad94-de9f289e62ff" last-modified="2011-10-28T21:00:13" xmlns="http://schemas.mandiant.com/2010/ioc">
