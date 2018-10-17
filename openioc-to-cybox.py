@@ -80,9 +80,8 @@ def write_observables(observables, outfn):
     xml = observables.to_xml(namespace_dict=namespaces)
 
     with open(outfn, 'wb') as outfile:
-        bytes = codecs.encode('<?xml version="1.0" encoding="utf-8"?>\n')
-        outfile.write(bytes)
         outfile.write(xml)
+
 
 def init_id_namespace():
     # setup namespace...
