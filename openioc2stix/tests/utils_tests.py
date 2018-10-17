@@ -3,7 +3,7 @@
 
 try:
     import unittest2 as unittest
-except:
+except ImportError:
     import unittest
 
 import cybox
@@ -22,14 +22,20 @@ class MockObject(ObjectProperties):
     Str   = utils.TypedField('Str', String)
     Non   = utils.TypedField('None', None)
 
+
 class WrongMockObject:
     # Class used for testing wrong attribute types
     def __init__(self, dne):
-        self.dne = dne
+        self._dne = dne
 
     @property
     def dne(self):
-        return self.dne
+        return self._dne
+
+    @dne.setter
+    def dne(self, value):
+        self._dne = value
+
 
 class UtilsTest(unittest.TestCase):
 

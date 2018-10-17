@@ -37,7 +37,7 @@ Cyber Observable eXpression (CybOX), and OpenIOC efforts.
 Requirements
 ------------
 
-* Python 2.6, 2.7
+* Python 2.6, 2.7, 3.4, 3.5, 3.6
 * mixbox >= v1.0.1
 * python-stix >= v1.2.0.2
 * python-cybox >= 2.1.0.13

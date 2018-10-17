@@ -1,18 +1,17 @@
 # Copyright (c) 2017, The MITRE Corporation. All rights reserved.
 # See LICENSE.txt for complete terms.
 
-from StringIO import StringIO
 try:
     import unittest2 as unittest
 except:
     import unittest
 
 import lxml.etree as ET
+from mixbox.vendor.six import StringIO
 
 from openioc2stix import xml
 
-
-OPENIOC_XML = """<?xml version="1.0" encoding="us-ascii"?>
+OPENIOC_XML = """
 <ioc xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" id="fc2d3e44-80a6-4add-ad94-de9f289e62ff" last-modified="2011-10-28T21:00:13" xmlns="http://schemas.mandiant.com/2010/ioc">
   <short_description>CCAPP.EXE</short_description>
   <description>Custom Reverse shell.</description>
